@@ -25,7 +25,7 @@ const defaultData = {
       price: 599, discountPrice: 499,
       description: 'Premium oversized black t-shirt with relaxed fit. Perfect for everyday wear with a modern silhouette.',
       category: 'Oversized Tees', collection: 'Essentials',
-      sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['Black', 'White', 'Gray'],
       image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600',
       stock: 50, status: 'active', createdAt: new Date().toISOString()
@@ -36,7 +36,7 @@ const defaultData = {
       price: 799, discountPrice: null,
       description: 'Bold graphic print tee with Gen Z vibes. Stand out from the crowd with this limited design.',
       category: 'Graphic Tees', collection: 'Street Culture',
-      sizes: ['S', 'M', 'L', 'XL'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['Black', 'White'],
       image: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=600',
       stock: 30, status: 'active', createdAt: new Date().toISOString()
@@ -58,7 +58,7 @@ const defaultData = {
       price: 699, discountPrice: null,
       description: 'Signature BASTINS logo in neon lime. Make a statement with our iconic branding.',
       category: 'Logo Tees', collection: 'Signature',
-      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['Black', 'Navy'],
       image: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600',
       stock: 45, status: 'active', createdAt: new Date().toISOString()
@@ -69,7 +69,7 @@ const defaultData = {
       price: 649, discountPrice: null,
       description: 'Drop shoulder cut for a modern silhouette. The essential wardrobe piece for any outfit.',
       category: 'Oversized Tees', collection: 'Essentials',
-      sizes: ['S', 'M', 'L', 'XL'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['White', 'Beige', 'Black'],
       image: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=600',
       stock: 0, status: 'out_of_stock', createdAt: new Date().toISOString()
@@ -80,7 +80,7 @@ const defaultData = {
       price: 849, discountPrice: 699,
       description: 'Hand-drawn abstract art print. Limited edition design from our artist collab series.',
       category: 'Graphic Tees', collection: 'Artist Series',
-      sizes: ['XS', 'S', 'M', 'L'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['White', 'Black'],
       image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600',
       stock: 15, status: 'active', createdAt: new Date().toISOString()
@@ -91,7 +91,7 @@ const defaultData = {
       price: 549, discountPrice: null,
       description: 'Clean minimal script typography. Less is more — the perfect minimalist tee.',
       category: 'Minimal', collection: 'Essentials',
-      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['White', 'Black', 'Gray'],
       image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600',
       stock: 60, status: 'active', createdAt: new Date().toISOString()
@@ -102,7 +102,7 @@ const defaultData = {
       price: 749, discountPrice: null,
       description: 'Y2K inspired design with chrome and holographic details. Bring back the 2000s.',
       category: 'Vintage', collection: 'Retro Vibes',
-      sizes: ['XS', 'S', 'M', 'L'],
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
       colors: ['Silver', 'Pink', 'Blue'],
       image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600',
       stock: 25, status: 'active', createdAt: new Date().toISOString()
