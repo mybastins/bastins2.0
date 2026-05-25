@@ -9,8 +9,9 @@ const defaultData = {
     {
       id: 'admin-001',
       name: 'Admin',
+      username: 'admin',
       email: 'admin@bastins.com',
-      password: bcrypt.hashSync('admin@123', 10),
+      password: bcrypt.hashSync('bastin123', 10),
       role: 'admin',
       phone: '',
       address: '',
