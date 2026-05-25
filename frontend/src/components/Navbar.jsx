@@ -1,11 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { motion } from 'framer-motion'
 
 export default function Navbar() {
-  const { darkMode, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
   const { totalItems, setIsOpen } = useCart()
   const navigate = useNavigate()
@@ -16,50 +14,71 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 ${darkMode ? 'bg-black/90 text-white' : 'bg-white/90 text-black'} backdrop-blur-md border-b ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-2xl font-black tracking-tighter">
-          <span className="text-primary">BAST</span><span className="text-accent">INS</span>
-        </Link>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
+      <div className="max-w-full px-6 h-16 flex items-center justify-between">
 
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-          <Link to="/collections" className="hover:text-primary transition-colors">Collections</Link>
-          <Link to="/category/Oversized Tees" className="hover:text-primary transition-colors">Oversized</Link>
-          <Link to="/design" className="hover:text-primary transition-colors">Design Yours</Link>
-          <Link to="/track" className="hover:text-primary transition-colors">Track Order</Link>
+        {/* Left: Nav links */}
+        <div className="hidden md:flex items-center gap-8">
+          {[['/', 'HOME'], ['/collections', 'COLLECTIONS'], ['/category/Oversized Tees', 'OVERSIZED'], ['/category/Graphic Tees', 'GRAPHIC'], ['/design', 'DESIGN YOURS']].map(([to, label]) => (
+            <Link
+              key={to}
+              to={to}
+              className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors"
+            >
+              {label}
+            </Link>
+          ))}
           {user?.role === 'admin' && (
-            <Link to="/admin" className="text-accent hover:text-primary transition-colors">Admin</Link>
+            <Link to="/admin" className="text-xs font-bold tracking-widest transition-colors" style={{ color: '#C8F135' }}>
+              ADMIN
+            </Link>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-primary/20 transition-colors text-lg">
-            {darkMode ? '☀️' : '🌙'}
-          </button>
+        {/* Center: Logo */}
+        <Link to="/" className="absolute left-1/2 -translate-x-1/2 text-xl font-black tracking-tighter text-white">
+          BASTIN<span style={{ color: '#C8F135' }}>'S</span>
+        </Link>
 
-          <button onClick={() => setIsOpen(true)} className="relative p-2 rounded-full hover:bg-primary/20 transition-colors">
-            🛒
+        {/* Right: Actions */}
+        <div className="flex items-center gap-5 ml-auto">
+          <Link to="/track" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden md:block">
+            TRACK ORDER
+          </Link>
+
+          {user ? (
+            <>
+              <span className="text-xs font-bold tracking-widest text-white/60 hidden md:block">
+                {user.name.split(' ')[0].toUpperCase()}
+              </span>
+              <button onClick={handleLogout} className="text-xs font-bold tracking-widest text-white/40 hover:text-white transition-colors hidden md:block">
+                LOGOUT
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors">
+                SIGN IN
+              </Link>
+              <Link to="/register" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden md:block">
+                SIGN UP
+              </Link>
+            </>
+          )}
+
+          {/* Cart */}
+          <button onClick={() => setIsOpen(true)} className="relative flex items-center gap-1.5 group">
+            <svg className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              <span className="absolute -top-2 -right-2 text-black text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#C8F135' }}>
                 {totalItems}
               </span>
             )}
           </button>
-
-          {user ? (
-            <div className="flex items-center gap-2">
-              <Link to="/cart" className={`text-sm font-medium px-3 py-1.5 rounded-full ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                {user.name.split(' ')[0]}
-              </Link>
-              <button onClick={handleLogout} className="text-sm text-red-400 hover:text-red-300">Logout</button>
-            </div>
-          ) : (
-            <Link to="/login" className="bg-primary text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-primary/80 transition-colors">
-              Login
-            </Link>
-          )}
         </div>
+
       </div>
     </nav>
   )

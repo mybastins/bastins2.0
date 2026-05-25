@@ -1,37 +1,45 @@
 import { Link } from 'react-router-dom'
-import { useTheme } from '../context/ThemeContext'
 
 export default function Footer() {
-  const { darkMode } = useTheme()
   return (
-    <footer className={`${darkMode ? 'bg-black text-white/60' : 'bg-gray-100 text-gray-600'} mt-20 py-10`}>
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <div className="text-2xl font-black mb-3">
-            <span className="text-primary">BAST</span><span className="text-accent">INS</span>
-          </div>
-          <p className="text-sm">Gen Z Fashion. Designed for the bold.</p>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3 text-white">Quick Links</h4>
-          <div className="flex flex-col gap-2 text-sm">
-            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-            <Link to="/collections" className="hover:text-primary transition-colors">Collections</Link>
-            <Link to="/design" className="hover:text-primary transition-colors">Design Your Own</Link>
-            <Link to="/track" className="hover:text-primary transition-colors">Track Order</Link>
+    <footer className="bg-black border-t border-white/10 py-14">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+        <div className="col-span-2 md:col-span-1">
+          <p className="text-xl font-black tracking-tighter text-white mb-3">
+            BASTIN<span style={{ color: '#C8F135' }}>'S</span>
+          </p>
+          <p className="text-xs text-white/30 tracking-wider leading-relaxed mb-4">
+            Gen Z Fashion.<br />Designed for the bold.
+          </p>
+          <div className="flex gap-3 text-xs font-bold text-white/30">
+            <a href="#" className="hover:text-[#C8F135] transition-colors">IG</a>
+            <a href="#" className="hover:text-[#C8F135] transition-colors">TW</a>
+            <a href="#" className="hover:text-[#C8F135] transition-colors">YT</a>
           </div>
         </div>
-        <div>
-          <h4 className="font-semibold mb-3 text-white">Account</h4>
-          <div className="flex flex-col gap-2 text-sm">
-            <Link to="/login" className="hover:text-primary transition-colors">Login</Link>
-            <Link to="/register" className="hover:text-primary transition-colors">Register</Link>
-            <Link to="/cart" className="hover:text-primary transition-colors">Cart</Link>
+        {[
+          { title: 'Shop', links: [['/', 'Home'], ['/collections', 'All Products'], ['/category/Oversized Tees', 'Oversized'], ['/category/Graphic Tees', 'Graphic Tees'], ['/design', 'Design Yours']] },
+          { title: 'Account', links: [['/login', 'Sign In'], ['/register', 'Sign Up'], ['/account', 'My Account'], ['/cart', 'Cart'], ['/track', 'Track Order']] },
+          { title: 'Company', links: [['/about', 'About Us'], ['/contact', 'Contact Us'], ['/terms', 'Terms & Conditions'], ['/privacy', 'Privacy Policy']] },
+          { title: 'Admin', links: [['/admin/login', 'Admin Login'], ['/admin', 'Dashboard'], ['/admin/products', 'Products'], ['/admin/orders', 'Orders'], ['/admin/customers', 'Customers']] }
+        ].map(col => (
+          <div key={col.title}>
+            <p className="text-xs font-bold tracking-[0.25em] text-white/30 uppercase mb-4">{col.title}</p>
+            <div className="flex flex-col gap-2.5">
+              {col.links.map(([to, label]) => (
+                <Link key={to} to={to} className="text-xs text-white/40 hover:text-white transition-colors tracking-wider">{label}</Link>
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
-      <div className="text-center text-xs mt-8 opacity-50">
-        © 2024 BASTINS. Built with ❤️ for Gen Z Fashion.
+      <div className="max-w-7xl mx-auto px-6 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2">
+        <p className="text-xs text-white/20 tracking-widest">© 2024 BASTIN'S CLOTHING. ALL RIGHTS RESERVED.</p>
+        <div className="flex gap-4 text-xs text-white/20">
+          <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+          <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+        </div>
       </div>
     </footer>
   )

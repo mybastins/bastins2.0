@@ -1,92 +1,90 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { useTheme } from '../context/ThemeContext'
 import toast from 'react-hot-toast'
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
-  const { darkMode } = useTheme()
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[2] || product.sizes?.[0] || 'M')
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[1] || product.sizes?.[0] || 'M')
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || 'Black')
+  const hasDiscount = product.discountPrice && product.discountPrice < product.price
+  const discount = hasDiscount ? Math.round((1 - product.discountPrice / product.price) * 100) : 0
+  const isOOS = product.status === 'out_of_stock' || product.stock === 0
 
-  function handleAddToCart() {
+  function handleAddToCart(e) {
+    e.preventDefault()
+    if (isOOS) return toast.error('Out of stock')
     addToCart(product, selectedSize, selectedColor)
-    toast.success(`${product.name} added to cart!`)
+    toast.success('Added to cart!')
   }
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className={`rounded-2xl overflow-hidden ${darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-black/10'} shadow-lg`}
-    >
-      <div className="relative overflow-hidden aspect-square">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-          onError={e => { e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400' }}
-        />
-        <div className="absolute top-3 left-3 bg-accent text-black text-xs font-bold px-2 py-1 rounded-full">
-          {product.category}
+    <motion.div whileHover="hover" className="group bg-black relative overflow-hidden">
+      <Link to={`/product/${product.id}`}>
+        {/* Image */}
+        <div className="relative aspect-square overflow-hidden bg-zinc-900">
+          <motion.img
+            src={product.image}
+            alt={product.name}
+            variants={{ hover: { scale: 1.06 } }}
+            transition={{ duration: 0.5 }}
+            className="w-full h-full object-cover"
+            onError={e => { e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400' }}
+          />
+          {hasDiscount && (
+            <div className="absolute top-3 left-3 bg-[#C8F135] text-black text-xs font-black px-2 py-0.5">
+              -{discount}%
+            </div>
+          )}
+          {isOOS && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <span className="text-white text-xs font-black tracking-widest">SOLD OUT</span>
+            </div>
+          )}
+          {product.stock > 0 && product.stock <= 5 && !isOOS && (
+            <div className="absolute top-3 right-3 bg-yellow-500/20 text-yellow-400 text-xs font-bold px-2 py-0.5">
+              ONLY {product.stock} LEFT
+            </div>
+          )}
         </div>
-      </div>
 
-      <div className="p-4">
-        <h3 className="font-bold text-base mb-1 truncate">{product.name}</h3>
-        <p className={`text-sm mb-3 line-clamp-2 ${darkMode ? 'text-white/60' : 'text-gray-500'}`}>{product.description}</p>
-        <div className="text-xl font-black text-primary mb-3">₹{product.price}</div>
-
-        {product.sizes?.length > 0 && (
-          <div className="mb-2">
-            <p className={`text-xs mb-1 ${darkMode ? 'text-white/50' : 'text-gray-400'}`}>Size</p>
-            <div className="flex flex-wrap gap-1">
-              {product.sizes.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setSelectedSize(s)}
-                  className={`text-xs px-2 py-1 rounded border transition-colors ${
-                    selectedSize === s
-                      ? 'bg-primary text-white border-primary'
-                      : darkMode ? 'border-white/20 hover:border-primary' : 'border-gray-200 hover:border-primary'
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+        {/* Info */}
+        <div className="p-4">
+          <p className="text-xs text-white/30 tracking-widest uppercase mb-1">{product.category}</p>
+          <h3 className="font-bold text-sm text-white mb-2 truncate">{product.name}</h3>
+          <div className="flex items-center gap-2 mb-3">
+            {hasDiscount ? (
+              <>
+                <span className="font-black text-[#C8F135]">₹{product.discountPrice}</span>
+                <span className="text-white/30 text-xs line-through">₹{product.price}</span>
+              </>
+            ) : (
+              <span className="font-black text-white">₹{product.price}</span>
+            )}
           </div>
-        )}
+        </div>
+      </Link>
 
-        {product.colors?.length > 0 && (
-          <div className="mb-3">
-            <p className={`text-xs mb-1 ${darkMode ? 'text-white/50' : 'text-gray-400'}`}>Color: {selectedColor}</p>
-            <div className="flex gap-1">
-              {product.colors.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setSelectedColor(c)}
-                  title={c}
-                  className={`text-xs px-2 py-1 rounded border transition-colors ${
-                    selectedColor === c
-                      ? 'bg-primary text-white border-primary'
-                      : darkMode ? 'border-white/20 hover:border-primary' : 'border-gray-200 hover:border-primary'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={handleAddToCart}
-          className="w-full bg-primary text-white font-semibold py-2 rounded-xl hover:bg-primary/80 transition-colors text-sm"
-        >
-          Add to Cart
+      {/* Size selector (visible on hover) */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        variants={{ hover: { opacity: 1, y: 0 } }}
+        className="px-4 pb-2"
+      >
+        <div className="flex gap-1 mb-2 flex-wrap">
+          {product.sizes?.slice(0, 5).map(s => (
+            <button key={s} onClick={e => { e.preventDefault(); setSelectedSize(s) }}
+              className={`text-xs w-8 h-7 border transition-colors font-bold ${selectedSize === s ? 'bg-white text-black border-white' : 'border-white/20 text-white/50 hover:border-white'}`}>
+              {s}
+            </button>
+          ))}
+        </div>
+        <button onClick={handleAddToCart} disabled={isOOS}
+          className="w-full bg-white text-black text-xs font-black py-2.5 tracking-widest uppercase hover:bg-[#C8F135] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+          {isOOS ? 'SOLD OUT' : 'ADD TO CART'}
         </button>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
