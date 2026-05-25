@@ -47,8 +47,8 @@ export default function Register() {
       >
         {/* Logo */}
         <div className="text-center mb-10">
-          <Link to="/" className="text-3xl font-black tracking-tighter">
-            BASTIN<span style={{ color: '#C8F135' }}>'S</span>
+          <Link to="/" className="inline-block">
+            <img src="/logo.png" alt="BASTIN'S" className="h-12 w-auto object-contain mx-auto" />
           </Link>
           <p className="text-xs tracking-[0.3em] uppercase text-white/30 mt-2">Create Account</p>
         </div>

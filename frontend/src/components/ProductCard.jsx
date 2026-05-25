@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import toast from 'react-hot-toast'
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[1] || product.sizes?.[0] || 'M')
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || 'Black')
   const hasDiscount = product.discountPrice && product.discountPrice < product.price
@@ -17,6 +19,14 @@ export default function ProductCard({ product }) {
     if (isOOS) return toast.error('Out of stock')
     addToCart(product, selectedSize, selectedColor)
     toast.success('Added to cart!')
+  }
+
+  function handleWishlist(e) {
+    e.preventDefault()
+    const added = toggleWishlist(product)
+    toast(added ? 'Added to wishlist ♥' : 'Removed from wishlist', {
+      icon: added ? '🤍' : '💔'
+    })
   }
 
   return (
@@ -47,6 +57,19 @@ export default function ProductCard({ product }) {
               ONLY {product.stock} LEFT
             </div>
           )}
+
+          {/* Wishlist heart */}
+          <motion.button
+            onClick={handleWishlist}
+            initial={{ opacity: 0 }}
+            variants={{ hover: { opacity: 1 } }}
+            className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center bg-black/70 border border-white/10 hover:border-[#C8F135]/50 transition-all"
+            title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <svg className="w-4 h-4 transition-colors" fill={isInWishlist(product.id) ? '#C8F135' : 'none'} stroke={isInWishlist(product.id) ? '#C8F135' : 'white'} strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" />
+            </svg>
+          </motion.button>
         </div>
 
         {/* Info */}

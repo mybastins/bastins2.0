@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import toast from 'react-hot-toast'
 
 const STATUS_BADGE = {
@@ -15,6 +16,7 @@ export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addToCart } = useCart()
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedSize, setSelectedSize] = useState('')
@@ -38,6 +40,13 @@ export default function ProductDetail() {
     if (product.status === 'out_of_stock') return toast.error('Out of stock')
     addToCart(product, selectedSize, selectedColor, qty)
     toast.success('Added to cart!')
+  }
+
+  function handleWishlist() {
+    const added = toggleWishlist(product)
+    toast(added ? 'Saved to wishlist ♥' : 'Removed from wishlist', {
+      icon: added ? '🤍' : '💔'
+    })
   }
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white text-xl">Loading...</div>
@@ -156,6 +165,15 @@ export default function ProductDetail() {
                 disabled={product.status === 'out_of_stock'}
                 className="flex-1 bg-white text-black font-black py-4 text-sm tracking-widest uppercase hover:bg-[#C8F135] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {product.status === 'out_of_stock' ? 'OUT OF STOCK' : 'ADD TO CART'}
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleWishlist}
+                title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Save to wishlist'}
+                className={`w-14 border flex items-center justify-center transition-all ${isInWishlist(product.id) ? 'border-[#C8F135] bg-[#C8F135]/10' : 'border-white/20 hover:border-[#C8F135]/50'}`}>
+                <svg className="w-5 h-5 transition-colors" fill={isInWishlist(product.id) ? '#C8F135' : 'none'} stroke={isInWishlist(product.id) ? '#C8F135' : 'white'} strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" />
+                </svg>
               </motion.button>
             </div>
 

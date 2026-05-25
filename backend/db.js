@@ -110,7 +110,14 @@ const defaultData = {
   ],
   orders: [],
   collections: ['Essentials', 'Street Culture', 'Retro Vibes', 'Signature', 'Artist Series'],
-  categories: ['Oversized Tees', 'Graphic Tees', 'Vintage', 'Minimal', 'Logo Tees']
+  categories: ['Oversized Tees', 'Graphic Tees', 'Vintage', 'Minimal', 'Logo Tees'],
+  collectionMeta: {
+    'Essentials':     { image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800', description: 'The everyday wardrobe staples you reach for first.' },
+    'Street Culture': { image: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=800', description: 'Bold graphics and raw energy — built for the streets.' },
+    'Retro Vibes':    { image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800', description: 'Vintage-washed nostalgia with a modern edge.' },
+    'Signature':      { image: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?w=800', description: 'Iconic BASTINS branding, unmistakably yours.' },
+    'Artist Series':  { image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800', description: 'Limited edition drops from our creative collaborations.' }
+  }
 };
 
 function readDB() {
@@ -120,9 +127,10 @@ function readDB() {
   }
   const data = fs.readFileSync(DB_PATH, 'utf8');
   const parsed = JSON.parse(data);
-  // ensure collections & categories exist
+  // ensure collections, categories & collectionMeta exist
   if (!parsed.collections) parsed.collections = defaultData.collections;
   if (!parsed.categories) parsed.categories = defaultData.categories;
+  if (!parsed.collectionMeta) parsed.collectionMeta = defaultData.collectionMeta;
   return parsed;
 }
 

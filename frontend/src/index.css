@@ -36,9 +36,18 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: #000;
 }
 ::-webkit-scrollbar-thumb {
-  background: #7C3AED;
-  border-radius: 3px;
+  background: #C8F135;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4f54a;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C8F135 #000;
 }

@@ -20,7 +20,7 @@ export default function AdminCustomers() {
   )
 
   return (
-    <div className="min-h-screen bg-black text-white pt-16">
+    <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <div>

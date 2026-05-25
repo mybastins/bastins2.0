@@ -5,9 +5,7 @@ export default function Footer() {
     <footer className="bg-black border-t border-white/10 py-14">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
         <div className="col-span-2 md:col-span-1">
-          <p className="text-xl font-black tracking-tighter text-white mb-3">
-            BASTIN<span style={{ color: '#C8F135' }}>'S</span>
-          </p>
+          <img src="/logo.png" alt="BASTIN'S" className="h-8 w-auto object-contain mb-3" />
           <p className="text-xs text-white/30 tracking-wider leading-relaxed mb-4">
             Gen Z Fashion.<br />Designed for the bold.
           </p>

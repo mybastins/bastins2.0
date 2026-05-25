@@ -43,8 +43,8 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-10">
-          <Link to="/" className="text-3xl font-black tracking-tighter">
-            BASTIN<span style={{ color: '#C8F135' }}>'S</span>
+          <Link to="/" className="inline-block">
+            <img src="/logo.png" alt="BASTIN'S" className="h-12 w-auto object-contain mx-auto" />
           </Link>
           <p className="text-xs tracking-[0.3em] uppercase text-white/30 mt-2">Member Sign In</p>
         </div>
@@ -56,10 +56,10 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 block mb-1.5">Email Address</label>
+              <label className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 block mb-1.5">Email / Username</label>
               <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com" required autoComplete="email"
+                type="text" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com or admin" required autoComplete="username"
                 className={inputClass}
               />
             </div>
