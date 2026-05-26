@@ -20,7 +20,9 @@ export default function Login() {
       toast.success('Welcome back!')
       navigate('/')
     } catch (err) {
-      toast.error(String(err.response?.data?.error || 'Invalid credentials'))
+      const d = err.response?.data
+      const msg = typeof d?.error === 'string' ? d.error : typeof d?.message === 'string' ? d.message : 'Invalid credentials'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }

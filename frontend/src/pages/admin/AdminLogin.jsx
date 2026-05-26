@@ -30,7 +30,9 @@ export default function AdminLogin() {
       toast.success('Welcome back, Admin!')
       navigate('/admin')
     } catch (err) {
-      toast.error(String(err.response?.data?.error || 'Invalid password'))
+      const d = err.response?.data
+      const msg = typeof d?.error === 'string' ? d.error : typeof d?.message === 'string' ? d.message : 'Invalid password'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
