@@ -30,10 +30,12 @@ export default function Collections() {
       axios.get('/api/products/all'),
       axios.get('/api/collections')
     ]).then(([p, c]) => {
-      setProducts(p.data)
-      setCollections(c.data.collections || [])
-      setCollectionMeta(c.data.collectionMeta || {})
-      setCategories(['All', ...(c.data.categories || [])])
+      if (Array.isArray(p.data)) setProducts(p.data)
+      if (c.data && typeof c.data === 'object' && !Array.isArray(c.data)) {
+        setCollections(c.data.collections || [])
+        setCollectionMeta(c.data.collectionMeta || {})
+        setCategories(['All', ...(c.data.categories || [])])
+      }
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])

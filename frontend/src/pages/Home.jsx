@@ -44,7 +44,7 @@ export default function Home() {
   const [products, setProducts] = useState([])
 
   useEffect(() => {
-    axios.get('/api/products/all').then(r => setProducts(r.data.slice(0, 4))).catch(() => {})
+    axios.get('/api/products/all').then(r => { if (Array.isArray(r.data)) setProducts(r.data.slice(0, 4)) }).catch(() => {})
   }, [])
 
   return (
