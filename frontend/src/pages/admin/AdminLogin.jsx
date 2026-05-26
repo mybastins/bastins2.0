@@ -30,7 +30,7 @@ export default function AdminLogin() {
       toast.success('Welcome back, Admin!')
       navigate('/admin')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Invalid password')
+      toast.error(String(err.response?.data?.error || 'Invalid password'))
     } finally {
       setLoading(false)
     }

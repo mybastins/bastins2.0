@@ -5,26 +5,42 @@ const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user')
-    return saved ? JSON.parse(saved) : null
+    try {
+      const saved = localStorage.getItem('user')
+      if (!saved || saved === 'undefined' || saved === 'null') return null
+      const parsed = JSON.parse(saved)
+      if (parsed && typeof parsed === 'object' && parsed.id) return parsed
+      return null
+    } catch { return null }
   })
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
+
+  const [token, setToken] = useState(() => {
+    try { return localStorage.getItem('token') || null } catch { return null }
+  })
 
   async function login(email, password) {
     const { data } = await axios.post('/api/auth/login', { email, password })
-    setUser(data.user)
-    setToken(data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    localStorage.setItem('token', data.token)
+    if (data.user) {
+      setUser(data.user)
+      localStorage.setItem('user', JSON.stringify(data.user))
+    }
+    if (data.token) {
+      setToken(data.token)
+      localStorage.setItem('token', data.token)
+    }
     return data
   }
 
   async function register(name, email, password) {
     const { data } = await axios.post('/api/auth/register', { name, email, password })
-    setUser(data.user)
-    setToken(data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    localStorage.setItem('token', data.token)
+    if (data.user) {
+      setUser(data.user)
+      localStorage.setItem('user', JSON.stringify(data.user))
+    }
+    if (data.token) {
+      setToken(data.token)
+      localStorage.setItem('token', data.token)
+    }
     return data
   }
 

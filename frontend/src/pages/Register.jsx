@@ -24,7 +24,7 @@ export default function Register() {
       toast.success('Account created! Welcome to BASTIN\'S')
       navigate('/')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed')
+      toast.error(String(err.response?.data?.error || 'Registration failed'))
     } finally {
       setLoading(false)
     }
