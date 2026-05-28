@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export default function Footer() {
   return (
     <footer className="bg-black border-t border-white/10 py-14">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8 mb-10">
         <div className="col-span-2 md:col-span-1">
           <img src="/logo.png" alt="BASTIN'S" className="h-8 w-auto object-contain mb-3" />
           <p className="text-xs text-white/30 tracking-wider leading-relaxed mb-4">

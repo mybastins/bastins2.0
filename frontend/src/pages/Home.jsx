@@ -51,7 +51,7 @@ export default function Home() {
     <div className="min-h-screen bg-black text-white">
 
       {/* ── HERO: 4-Panel Grid ── */}
-      <section className="pt-16 w-full h-screen grid grid-cols-4">
+      <section className="pt-16 w-full h-[70vh] md:h-screen grid grid-cols-2 md:grid-cols-4">
         {PANELS.map((panel, i) => (
           <motion.div
             key={i}
@@ -76,11 +76,11 @@ export default function Home() {
             )}
 
             {/* Content */}
-            <div className="relative z-10 h-full flex flex-col justify-between p-6 md:p-8">
+            <div className="relative z-10 h-full flex flex-col justify-between p-3 md:p-8">
               {/* Top tag */}
               <div>
                 <span
-                  className="text-xs font-bold tracking-[0.25em] uppercase"
+                  className="text-[9px] md:text-xs font-bold tracking-[0.2em] uppercase"
                   style={{ color: panel.accent === 'neon' ? '#C8F135' : '#C0C0C0' }}
                 >
                   {panel.tag}
@@ -89,7 +89,7 @@ export default function Home() {
 
               {/* Bottom content */}
               <div>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black leading-none tracking-tighter text-white mb-5 whitespace-pre-line">
+                <h2 className="text-base md:text-4xl lg:text-5xl font-black leading-tight tracking-tighter text-white mb-2 md:mb-5 whitespace-pre-line">
                   {panel.title}
                 </h2>
 
@@ -142,10 +142,10 @@ export default function Home() {
       {/* ── FEATURED DROPS ── */}
       <section className="py-20 px-6 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <div className="flex items-end justify-between mb-12">
+          <div className="flex items-end justify-between mb-8 md:mb-12">
             <div>
               <p className="text-xs tracking-[0.3em] uppercase text-[#C0C0C0] mb-2">Featured</p>
-              <h2 className="text-5xl font-black tracking-tighter">
+              <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
                 NEW <span style={{ color: '#C8F135' }}>DROPS</span>
               </h2>
             </div>
@@ -175,9 +175,9 @@ export default function Home() {
       {/* ── CATEGORIES ── */}
       <section className="py-10 px-6 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <div className="mb-10">
+          <div className="mb-6 md:mb-10">
             <p className="text-xs tracking-[0.3em] uppercase text-[#C0C0C0] mb-2">Browse</p>
-            <h2 className="text-5xl font-black tracking-tighter">CATEGORIES</h2>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter">CATEGORIES</h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/10">
@@ -215,7 +215,7 @@ export default function Home() {
           <p className="text-xs tracking-[0.4em] uppercase mb-4" style={{ color: '#C8F135' }}>
             Exclusive Feature
           </p>
-          <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white mb-6">
+          <h2 className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter text-white mb-4 md:mb-6 px-4">
             DESIGN YOUR OWN TEE
           </h2>
           <Link to="/design">

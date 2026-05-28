@@ -19,7 +19,7 @@ export default function CartSidebar() {
           <motion.div
             initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className={`fixed right-0 top-0 h-full w-96 z-50 flex flex-col ${darkMode ? 'bg-zinc-900 text-white' : 'bg-white text-black'} shadow-2xl`}
+            className={`fixed right-0 top-0 h-full w-full md:w-96 z-50 flex flex-col ${darkMode ? 'bg-zinc-900 text-white' : 'bg-white text-black'} shadow-2xl`}
           >
             <div className="flex items-center justify-between p-5 border-b border-white/10">
               <h2 className="text-xl font-bold">Cart ({totalItems})</h2>

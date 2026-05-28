@@ -89,11 +89,27 @@ export default function ProductCard({ product }) {
         </div>
       </Link>
 
-      {/* Size selector (visible on hover) */}
+      {/* Mobile: always visible */}
+      <div className="px-4 pb-4 md:hidden">
+        <div className="flex gap-1 mb-2 flex-wrap">
+          {product.sizes?.slice(0, 5).map(s => (
+            <button key={s} onClick={e => { e.preventDefault(); setSelectedSize(s) }}
+              className={`text-xs w-8 h-7 border transition-colors font-bold ${selectedSize === s ? 'bg-white text-black border-white' : 'border-white/20 text-white/50'}`}>
+              {s}
+            </button>
+          ))}
+        </div>
+        <button onClick={handleAddToCart} disabled={isOOS}
+          className="w-full bg-white text-black text-xs font-black py-3 tracking-widest uppercase active:bg-[#C8F135] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+          {isOOS ? 'SOLD OUT' : 'ADD TO CART'}
+        </button>
+      </div>
+
+      {/* Desktop: hover reveal */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         variants={{ hover: { opacity: 1, y: 0 } }}
-        className="px-4 pb-2"
+        className="hidden md:block px-4 pb-2"
       >
         <div className="flex gap-1 mb-2 flex-wrap">
           {product.sizes?.slice(0, 5).map(s => (
