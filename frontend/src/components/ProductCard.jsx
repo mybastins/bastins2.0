@@ -5,6 +5,23 @@ import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import toast from 'react-hot-toast'
 
+const COLOR_MAP = {
+  black: '#111111', white: '#FFFFFF', navy: '#1a1a4e', blue: '#3b82f6',
+  red: '#ef4444', green: '#22c55e', yellow: '#eab308', orange: '#f97316',
+  purple: '#a855f7', pink: '#ec4899', grey: '#9ca3af', gray: '#9ca3af',
+  brown: '#92400e', beige: '#d4b896', cream: '#f5f0e8', khaki: '#c4a35a',
+  olive: '#84724a', maroon: '#7f1d1d', teal: '#0d9488', cyan: '#06b6d4',
+  lime: '#C8F135', indigo: '#4f46e5', charcoal: '#374151', offwhite: '#f5f0e8',
+  'off-white': '#f5f0e8', 'light blue': '#93c5fd', 'dark blue': '#1e3a8a',
+  'dark green': '#14532d', 'light green': '#86efac', 'light grey': '#d1d5db',
+  'dark grey': '#4b5563', 'sky blue': '#38bdf8', lavender: '#c4b5fd',
+  rust: '#c2410c', sand: '#d4b896', mint: '#6ee7b7', coral: '#fb7185',
+}
+
+function getColorHex(name) {
+  return COLOR_MAP[name?.toLowerCase()] || null
+}
+
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
@@ -91,14 +108,38 @@ export default function ProductCard({ product }) {
 
       {/* Mobile: always visible */}
       <div className="px-4 pb-4 md:hidden">
-        <div className="flex gap-1 mb-2 flex-wrap">
-          {product.sizes?.slice(0, 5).map(s => (
-            <button key={s} onClick={e => { e.preventDefault(); setSelectedSize(s) }}
-              className={`text-xs w-8 h-7 border transition-colors font-bold ${selectedSize === s ? 'bg-white text-black border-white' : 'border-white/20 text-white/50'}`}>
-              {s}
-            </button>
-          ))}
-        </div>
+        {/* Sizes */}
+        {product.sizes?.length > 0 && (
+          <div className="flex gap-1 mb-2 flex-wrap">
+            {product.sizes.slice(0, 5).map(s => (
+              <button key={s} onClick={e => { e.preventDefault(); setSelectedSize(s) }}
+                className={`text-xs w-8 h-7 border transition-colors font-bold ${selectedSize === s ? 'bg-white text-black border-white' : 'border-white/20 text-white/50'}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        {/* Colors */}
+        {product.colors?.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+            {product.colors.slice(0, 6).map(c => {
+              const hex = getColorHex(c)
+              const isSelected = selectedColor === c
+              return hex ? (
+                <button key={c} onClick={e => { e.preventDefault(); setSelectedColor(c) }}
+                  title={c}
+                  className={`w-5 h-5 rounded-full transition-all flex-shrink-0 ${isSelected ? 'ring-2 ring-offset-1 ring-[#C8F135] ring-offset-black scale-110' : 'ring-1 ring-white/20 hover:ring-white/50'}`}
+                  style={{ background: hex }} />
+              ) : (
+                <button key={c} onClick={e => { e.preventDefault(); setSelectedColor(c) }}
+                  className={`text-[10px] font-bold px-1.5 py-0.5 border transition-colors ${isSelected ? 'border-[#C8F135] text-[#C8F135]' : 'border-white/20 text-white/40'}`}>
+                  {c}
+                </button>
+              )
+            })}
+            <span className="text-[10px] text-white/30 ml-1 truncate">{selectedColor}</span>
+          </div>
+        )}
         <button onClick={handleAddToCart} disabled={isOOS}
           className="w-full bg-white text-black text-xs font-black py-3 tracking-widest uppercase active:bg-[#C8F135] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
           {isOOS ? 'SOLD OUT' : 'ADD TO CART'}
@@ -109,16 +150,40 @@ export default function ProductCard({ product }) {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         variants={{ hover: { opacity: 1, y: 0 } }}
-        className="hidden md:block px-4 pb-2"
+        className="hidden md:block px-4 pb-3"
       >
-        <div className="flex gap-1 mb-2 flex-wrap">
-          {product.sizes?.slice(0, 5).map(s => (
-            <button key={s} onClick={e => { e.preventDefault(); setSelectedSize(s) }}
-              className={`text-xs w-8 h-7 border transition-colors font-bold ${selectedSize === s ? 'bg-white text-black border-white' : 'border-white/20 text-white/50 hover:border-white'}`}>
-              {s}
-            </button>
-          ))}
-        </div>
+        {/* Sizes */}
+        {product.sizes?.length > 0 && (
+          <div className="flex gap-1 mb-2 flex-wrap">
+            {product.sizes.slice(0, 5).map(s => (
+              <button key={s} onClick={e => { e.preventDefault(); setSelectedSize(s) }}
+                className={`text-xs w-8 h-7 border transition-colors font-bold ${selectedSize === s ? 'bg-white text-black border-white' : 'border-white/20 text-white/50 hover:border-white'}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        {/* Colors */}
+        {product.colors?.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
+            {product.colors.slice(0, 6).map(c => {
+              const hex = getColorHex(c)
+              const isSelected = selectedColor === c
+              return hex ? (
+                <button key={c} onClick={e => { e.preventDefault(); setSelectedColor(c) }}
+                  title={c}
+                  className={`w-5 h-5 rounded-full transition-all flex-shrink-0 ${isSelected ? 'ring-2 ring-offset-1 ring-[#C8F135] ring-offset-black scale-110' : 'ring-1 ring-white/20 hover:ring-white/50'}`}
+                  style={{ background: hex }} />
+              ) : (
+                <button key={c} onClick={e => { e.preventDefault(); setSelectedColor(c) }}
+                  className={`text-[10px] font-bold px-1.5 py-0.5 border transition-colors ${isSelected ? 'border-[#C8F135] text-[#C8F135]' : 'border-white/20 text-white/40 hover:border-white/50'}`}>
+                  {c}
+                </button>
+              )
+            })}
+            <span className="text-[10px] text-white/30 ml-1 truncate">{selectedColor}</span>
+          </div>
+        )}
         <button onClick={handleAddToCart} disabled={isOOS}
           className="w-full bg-white text-black text-xs font-black py-2.5 tracking-widest uppercase hover:bg-[#C8F135] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
           {isOOS ? 'SOLD OUT' : 'ADD TO CART'}
