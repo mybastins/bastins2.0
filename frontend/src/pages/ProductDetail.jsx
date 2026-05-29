@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -22,6 +22,76 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
   const [qty, setQty] = useState(1)
+
+  // Zoom / lightbox state
+  const [zoomOpen, setZoomOpen] = useState(false)
+  const [scale, setScale] = useState(1)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [lastPinchDist, setLastPinchDist] = useState(null)
+
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    if (zoomOpen) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [zoomOpen])
+
+  function openZoom() { setZoomOpen(true); setScale(1); setPosition({ x: 0, y: 0 }) }
+  function closeZoom() { setZoomOpen(false); setScale(1); setPosition({ x: 0, y: 0 }) }
+
+  function handleWheel(e) {
+    const delta = e.deltaY > 0 ? -0.25 : 0.25
+    setScale(s => {
+      const next = Math.min(Math.max(s + delta, 1), 6)
+      if (next <= 1) { setPosition({ x: 0, y: 0 }); return 1 }
+      return next
+    })
+  }
+
+  function handleMouseDown(e) {
+    if (scale <= 1) return
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+  }
+  function handleMouseMove(e) {
+    if (!isDragging) return
+    setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+  }
+  function handleMouseUp() { setIsDragging(false) }
+
+  function getPinchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX
+    const dy = touches[0].clientY - touches[1].clientY
+    return Math.sqrt(dx * dx + dy * dy)
+  }
+  function handleTouchStart(e) {
+    if (e.touches.length === 2) {
+      setLastPinchDist(getPinchDist(e.touches))
+    } else if (e.touches.length === 1 && scale > 1) {
+      setIsDragging(true)
+      setDragStart({ x: e.touches[0].clientX - position.x, y: e.touches[0].clientY - position.y })
+    }
+  }
+  function handleTouchMove(e) {
+    if (e.touches.length === 2 && lastPinchDist !== null) {
+      const dist = getPinchDist(e.touches)
+      const delta = (dist - lastPinchDist) * 0.012
+      setScale(s => {
+        const next = Math.min(Math.max(s + delta, 1), 6)
+        if (next <= 1) { setPosition({ x: 0, y: 0 }); return 1 }
+        return next
+      })
+      setLastPinchDist(dist)
+    } else if (e.touches.length === 1 && isDragging) {
+      setPosition({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y })
+    }
+  }
+  function handleTouchEnd(e) {
+    if (e.touches.length < 2) setLastPinchDist(null)
+    if (e.touches.length === 0) setIsDragging(false)
+  }
 
   useEffect(() => {
     axios.get(`/api/products/${id}`)
@@ -69,9 +139,13 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Image */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <div className="relative aspect-square bg-zinc-900 overflow-hidden">
+            <div
+              className="relative aspect-square bg-zinc-900 overflow-hidden cursor-zoom-in group"
+              onClick={openZoom}
+              title="Click to zoom"
+            >
               <img src={product.image} alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 onError={e => e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600'} />
               {hasDiscount && (
                 <div className="absolute top-4 left-4 bg-[#C8F135] text-black text-xs font-black px-3 py-1">
@@ -83,8 +157,85 @@ export default function ProductDetail() {
                   <span className="text-white font-black text-2xl tracking-widest">SOLD OUT</span>
                 </div>
               )}
+              {/* Zoom hint overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[10px] font-black tracking-[0.3em] uppercase text-white bg-black/60 px-3 py-1.5 flex items-center gap-2">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0zm0 0l.01 3" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 8v6M8 11h6" />
+                  </svg>
+                  Zoom
+                </span>
+              </div>
             </div>
           </motion.div>
+
+          {/* ── LIGHTBOX MODAL ── */}
+          <AnimatePresence>
+            {zoomOpen && (
+              <motion.div
+                key="lightbox"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[200] bg-black/96 flex items-center justify-center"
+                onClick={closeZoom}
+              >
+                {/* Close button */}
+                <button
+                  onClick={e => { e.stopPropagation(); closeZoom() }}
+                  className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white text-lg transition-colors border border-white/10 hover:border-white/30"
+                >
+                  ✕
+                </button>
+
+                {/* Scale badge */}
+                {scale > 1 && (
+                  <div className="absolute top-4 left-4 z-10 text-[10px] font-black tracking-widest text-white/50 bg-black/60 px-2 py-1 border border-white/10">
+                    {Math.round(scale * 100)}%
+                  </div>
+                )}
+
+                {/* Zoomable image area */}
+                <div
+                  className="w-full h-full flex items-center justify-center overflow-hidden select-none"
+                  onClick={e => e.stopPropagation()}
+                  onWheel={handleWheel}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  style={{ cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'zoom-in' }}
+                >
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    draggable={false}
+                    style={{
+                      maxWidth: '90vw',
+                      maxHeight: '90vh',
+                      objectFit: 'contain',
+                      transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
+                      transition: isDragging ? 'none' : 'transform 0.15s ease',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitUserDrag: 'none',
+                    }}
+                    onError={e => e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600'}
+                  />
+                </div>
+
+                {/* Hint bar */}
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-bold tracking-[0.25em] uppercase text-white/25">
+                  {scale > 1 ? 'Drag to pan · Scroll to zoom' : 'Scroll / Pinch to zoom · Click outside to close'}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Details */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col gap-6">
