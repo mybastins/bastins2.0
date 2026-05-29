@@ -283,7 +283,7 @@ export default function Collections() {
             <p className="text-white/20 font-black tracking-widest">NO PRODUCTS IN THIS COLLECTION YET</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10">
+          <div className="grid grid-cols-2 gap-px bg-white/10">
             {filtered.map((p, i) => (
               <motion.div key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }} className="bg-black">
                 <ProductCard product={p} />
