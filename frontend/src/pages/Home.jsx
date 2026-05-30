@@ -139,39 +139,6 @@ export default function Home() {
         </motion.div>
       </div>
 
-      {/* ── FEATURED DROPS ── */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <div className="flex items-end justify-between mb-8 md:mb-12">
-            <div>
-              <p className="text-xs tracking-[0.3em] uppercase text-[#C0C0C0] mb-2">Featured</p>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
-                NEW <span style={{ color: '#C8F135' }}>DROPS</span>
-              </h2>
-            </div>
-            <Link to="/collections"
-              className="text-sm font-bold tracking-widest uppercase text-white/50 hover:text-white border-b border-white/20 hover:border-white pb-1 transition-all">
-              View All →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 gap-px bg-white/10">
-            {products.map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="bg-black"
-              >
-                <ProductCard product={p} />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
       {/* ── CATEGORIES ── */}
       <section className="py-10 px-6 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -228,6 +195,39 @@ export default function Home() {
             </motion.button>
           </Link>
         </div>
+      </section>
+
+      {/* ── FEATURED DROPS ── */}
+      <section className="py-20 px-6 max-w-7xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <div className="flex items-end justify-between mb-8 md:mb-12">
+            <div>
+              <p className="text-xs tracking-[0.3em] uppercase text-[#C0C0C0] mb-2">Featured</p>
+              <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
+                NEW <span style={{ color: '#C8F135' }}>DROPS</span>
+              </h2>
+            </div>
+            <Link to="/collections"
+              className="text-sm font-bold tracking-widest uppercase text-white/50 hover:text-white border-b border-white/20 hover:border-white pb-1 transition-all">
+              View All →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 gap-px bg-white/10">
+            {products.map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="bg-black"
+              >
+                <ProductCard product={p} />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </section>
 
     </div>
