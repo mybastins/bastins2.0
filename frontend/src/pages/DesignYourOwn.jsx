@@ -25,25 +25,27 @@ const TSHIRT_COLORS = [
 ]
 
 /*
-  tshirt-base.png — background-removed, normalised to 65–92 % grey.
-  A colour overlay with mix-blend-mode:multiply is masked to the shirt
-  shape and blended on top, giving photorealistic shirt colours without
-  affecting the canvas background.
+  tshirt-white.png — white tee, background-removed transparent PNG.
+  White × multiply-colour = perfect shirt colour with full texture preserved.
+  No normalisation step needed — white is the ideal multiply base.
 */
-const SHIRT_BASE = '/tshirt-base.png'
+const SHIRT_BASE = '/tshirt-white.png'
 
 /*
-  Print-area calibrated to tshirt-base.png on a 1:1 square canvas.
-  Pixel scan shows shirt TORSO ≈ 20 %–74 % wide (sleeves excluded).
-  Torso centre ≈ 47 %.
+  Print-area calibrated to tshirt-white.png on a 1:1 square canvas.
+  Image 1534×1432 (aspect 1.071) → object-contain: full width, 93.4 % height,
+  3.3 % top letterbox.
 
-  14 × 16 in print area on an 18 in chest shirt:
-    width  = 14/18 × 54 %   ≈ 42 %
-    height = 42 % × (16/14) ≈ 48 %
-    left   = 47 % − 21 %    = 26 %
-    top    = 22 %
+  Pixel scan: shirt TORSO (below armhole) = 16 %–72 % wide on canvas.
+  Torso centre ≈ 44 %. Collar/shoulder region ~y=10–20 %.
+
+  14 × 16 in print area on an 18 in chest:
+    width  = 14/18 × 56 %   ≈ 44 %
+    height = 44 % × (16/14) ≈ 50 %
+    left   = 44 % − 22 %    = 22 %   (centred; 6 % margin each side)
+    top    = 18 %                     (below collar, above sleeve-end)
 */
-const PA = { top: '22%', left: '26%', width: '42%', height: '48%' }
+const PA = { top: '18%', left: '22%', width: '44%', height: '50%' }
 
 /* Qikink-blue palette */
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
@@ -66,7 +68,7 @@ function maskStyle(src) {
 
 export default function DesignYourOwn() {
   const [garmentId,     setGarmentId]     = useState('mens')
-  const [selectedColor, setSelectedColor] = useState('#111111')
+  const [selectedColor, setSelectedColor] = useState('#FFFFFF')
   const [selectedSize,  setSelectedSize]  = useState('M')
   const [uploadedImage, setUploadedImage] = useState(null)
   const { addToCart }                     = useCart()
@@ -130,7 +132,7 @@ export default function DesignYourOwn() {
             {/* ── Canvas — isolated compositing group ── */}
             <div
               className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '1 / 1', background: '#e8e8e8', isolation: 'isolate' }}
+              style={{ aspectRatio: '1 / 1', background: '#e4e7ea', isolation: 'isolate' }}
             >
               {/* Layer 1 — normalised grey shirt base */}
               <img
@@ -138,7 +140,7 @@ export default function DesignYourOwn() {
                 alt="T-shirt"
                 draggable={false}
                 className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
-                onError={e => { e.target.src = '/tshirt-mockup.png' }}
+                onError={e => { e.target.src = '/tshirt-mockup.jpg' }}
               />
 
               {/* Layer 2 — colour overlay (multiply × grey base = realistic shirt colour)
