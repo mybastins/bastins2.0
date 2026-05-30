@@ -5,62 +5,16 @@ import toast from 'react-hot-toast'
 
 /* ── Garment catalogue ── */
 const GARMENT_TYPES = [
-  {
-    id: 'mens',
-    label: "Men's T-Shirt",
-    price: 599,
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    // white-on-white studio mockup so the multiply blend tints cleanly
-    image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=700&q=80',
-    printTop: '28%',   // where the print area starts (as % of image height)
-    printLeft: '22%',  // and horizontally
-    printWidth: '56%',
-    printHeight: '38%',
-  },
-  {
-    id: 'womens',
-    label: "Women's T-Shirt",
-    price: 599,
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    image: 'https://images.unsplash.com/photo-1554568218-0f1715e72254?w=700&q=80',
-    printTop: '26%', printLeft: '24%', printWidth: '52%', printHeight: '34%',
-  },
-  {
-    id: 'oversized',
-    label: 'Oversized Unisex',
-    price: 699,
-    sizes: ['S', 'M', 'L', 'XL'],
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=700&q=80',
-    printTop: '26%', printLeft: '22%', printWidth: '56%', printHeight: '36%',
-  },
-  {
-    id: 'hoodie',
-    label: 'Unisex Hoodie',
-    price: 999,
-    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=700&q=80',
-    printTop: '32%', printLeft: '24%', printWidth: '52%', printHeight: '30%',
-  },
-  {
-    id: 'crop',
-    label: "Women's Crop Top",
-    price: 549,
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    image: 'https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=700&q=80',
-    printTop: '20%', printLeft: '24%', printWidth: '52%', printHeight: '28%',
-  },
-  {
-    id: 'raglan',
-    label: 'Raglan T-Shirt',
-    price: 649,
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    image: 'https://images.unsplash.com/photo-1503341338985-95ab0c0c3e21?w=700&q=80',
-    printTop: '28%', printLeft: '22%', printWidth: '56%', printHeight: '34%',
-  },
+  { id: 'mens',      label: "Men's T-Shirt",       price: 599, sizes: ['XS','S','M','L','XL'] },
+  { id: 'womens',    label: "Women's T-Shirt",      price: 599, sizes: ['XS','S','M','L','XL'] },
+  { id: 'oversized', label: 'Oversized Unisex',     price: 699, sizes: ['S','M','L','XL'] },
+  { id: 'hoodie',    label: 'Unisex Hoodie',        price: 999, sizes: ['XS','S','M','L','XL','XXL'] },
+  { id: 'crop',      label: "Women's Crop Top",     price: 549, sizes: ['XS','S','M','L','XL'] },
+  { id: 'raglan',    label: 'Raglan T-Shirt',       price: 649, sizes: ['XS','S','M','L','XL'] },
 ]
 
 const TSHIRT_COLORS = [
-  { hex: '#000000', name: 'Black' },
+  { hex: '#111111', name: 'Black' },
   { hex: '#FFFFFF', name: 'White' },
   { hex: '#C8F135', name: 'Lime' },
   { hex: '#C0C0C0', name: 'Silver' },
@@ -70,64 +24,170 @@ const TSHIRT_COLORS = [
   { hex: '#4a4a4a', name: 'Slate' },
 ]
 
-/* ── Determine CSS filter / blend settings per color ──
-   We show a white-base shirt image and tint it with a multiply overlay.
-   For pure black we use brightness(0) directly on the img.
-   For white we show no overlay.                              */
-function getColorStyle(hex) {
-  if (hex === '#000000') return { imgFilter: 'brightness(0.08) contrast(1)', overlay: null }
-  if (hex === '#FFFFFF') return { imgFilter: 'brightness(1)', overlay: null }
-  return {
-    imgFilter: 'brightness(0.92)',
-    overlay: { backgroundColor: hex, mixBlendMode: 'multiply', opacity: 0.78 }
-  }
+/* ─────────────────────────────────────────────────────────────
+   SVG T-SHIRT CONSTANTS
+   ViewBox:  500 × 580
+   Shirt body between seams ≈ 264 px  →  represents ~18 in
+   Scale:  264 / 18 ≈ 14.67 px / in
+
+   Print area (14 in × 16 in):
+     width  = 14 × 14.67 ≈ 205 px
+     height = 16 × 14.67 ≈ 235 px
+     centred horizontally: x = (500 - 205) / 2 = 147.5 → 148
+     top starts 2.5 in below collar base (y ≈ 82):
+       offset = 2.5 × 14.67 ≈ 37 px  →  y = 82 + 37 = 119
+───────────────────────────────────────────────────────────── */
+const VB_W = 500
+const VB_H = 580
+
+// Print area rectangle in SVG coordinate space
+const PA = { x: 148, y: 119, w: 205, h: 235 }
+
+// T-shirt flat-lay outline path (clockwise from left collar)
+const SHIRT_PATH = `
+  M 162 82
+  C 196 44 224 24 250 20
+  C 276 24 304 44 338 82
+  L 458 128
+  L 474 212
+  C 454 242 420 248 382 250
+  L 382 562
+  Q 250 576 118 562
+  L 118 250
+  C 80 248 46 242 26 212
+  L 42 128
+  Z
+`
+
+// Inner collar rib-band path
+const COLLAR_PATH = `M 174 80 C 202 52 228 36 250 32 C 272 36 298 52 326 80`
+
+/* ── Inline SVG T-shirt component ── */
+function TShirtSVG({ color, hasDesign }) {
+  const isLight = ['#FFFFFF', '#C8F135', '#C0C0C0', '#D3D3D3'].includes(color)
+  const outline  = isLight ? 'rgba(80,80,80,0.45)'  : 'rgba(255,255,255,0.22)'
+  const seamLine = isLight ? 'rgba(0,0,0,0.10)'     : 'rgba(255,255,255,0.07)'
+  const collarRib= isLight ? 'rgba(0,0,0,0.12)'     : 'rgba(255,255,255,0.09)'
+
+  const printStroke = 'rgba(200,241,53,0.6)'
+  const printFill   = hasDesign ? 'none' : (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)')
+  const labelColor  = isLight ? 'rgba(60,60,60,0.55)' : 'rgba(200,241,53,0.45)'
+
+  return (
+    <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="shirt-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="3" stdDeviation="10" floodColor="#000000" floodOpacity="0.45" />
+        </filter>
+      </defs>
+
+      {/* ── Shirt body ── */}
+      <path
+        d={SHIRT_PATH}
+        fill={color}
+        stroke={outline}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        filter="url(#shirt-shadow)"
+      />
+
+      {/* ── Seam lines ── */}
+      {/* Shoulder seams */}
+      <line x1="162" y1="82"  x2="42"  y2="128" stroke={seamLine} strokeWidth="1" />
+      <line x1="338" y1="82"  x2="458" y2="128" stroke={seamLine} strokeWidth="1" />
+      {/* Side seams */}
+      <line x1="118" y1="252" x2="118" y2="560" stroke={seamLine} strokeWidth="1" />
+      <line x1="382" y1="252" x2="382" y2="560" stroke={seamLine} strokeWidth="1" />
+
+      {/* ── Collar rib band ── */}
+      <path d={COLLAR_PATH} fill="none" stroke={collarRib} strokeWidth="8"  strokeLinecap="round" />
+      <path d={COLLAR_PATH} fill="none" stroke={outline}   strokeWidth="0.8" strokeLinecap="round" />
+
+      {/* ── Print area (14 × 16 in) ── */}
+      <rect
+        x={PA.x} y={PA.y} width={PA.w} height={PA.h}
+        fill={printFill}
+        stroke={printStroke}
+        strokeWidth="1.5"
+        strokeDasharray="7 4"
+        rx="2"
+      />
+
+      {/* Corner tick marks */}
+      {[
+        [PA.x,        PA.y,        1, 0,  0, 1],
+        [PA.x+PA.w,   PA.y,       -1, 0,  0, 1],
+        [PA.x,        PA.y+PA.h,   1, 0,  0,-1],
+        [PA.x+PA.w,   PA.y+PA.h,  -1, 0,  0,-1],
+      ].map(([cx, cy, dx, , , dy], i) => (
+        <g key={i}>
+          <line x1={cx} y1={cy} x2={cx + dx*10} y2={cy} stroke={printStroke} strokeWidth="2" />
+          <line x1={cx} y1={cy} x2={cx} y2={cy + dy*10} stroke={printStroke} strokeWidth="2" />
+        </g>
+      ))}
+
+      {/* Label — only when no design uploaded */}
+      {!hasDesign && (
+        <>
+          <text
+            x={PA.x + PA.w / 2} y={PA.y + PA.h / 2 - 10}
+            textAnchor="middle" fill={labelColor}
+            fontSize="14" fontFamily="'Courier New',monospace" fontWeight="700" letterSpacing="1.5"
+          >
+            14 × 16 in
+          </text>
+          <text
+            x={PA.x + PA.w / 2} y={PA.y + PA.h / 2 + 12}
+            textAnchor="middle" fill={labelColor}
+            fontSize="9" fontFamily="'Courier New',monospace" letterSpacing="2"
+          >
+            PRINT AREA
+          </text>
+          <text
+            x={PA.x + PA.w / 2} y={PA.y + PA.h / 2 + 28}
+            textAnchor="middle" fill={labelColor}
+            fontSize="8" fontFamily="'Courier New',monospace" letterSpacing="1" opacity="0.6"
+          >
+            upload your design above
+          </text>
+        </>
+      )}
+    </svg>
+  )
 }
 
+/* ── Main page ── */
 export default function DesignYourOwn() {
-  const [garmentId, setGarmentId]       = useState('mens')
-  const [selectedColor, setSelectedColor] = useState('#000000')
-  const [selectedSize, setSelectedSize]   = useState('M')
-  const [uploadedImage, setUploadedImage] = useState(null)
-  const [imagePos, setImagePos]           = useState({ x: 0, y: 0 })
-  const [imageSize, setImageSize]         = useState(110)
-  const [isDragging, setIsDragging]       = useState(false)
-  const [dragStart, setDragStart]         = useState({ x: 0, y: 0 })
-  const { addToCart }                     = useCart()
-  const fileRef                           = useRef()
-  const previewRef                        = useRef()
+  const [garmentId,      setGarmentId]      = useState('mens')
+  const [selectedColor,  setSelectedColor]  = useState('#111111')
+  const [selectedSize,   setSelectedSize]   = useState('M')
+  const [uploadedImage,  setUploadedImage]  = useState(null)
+  const { addToCart }                        = useCart()
+  const fileRef                              = useRef()
 
-  const garment    = GARMENT_TYPES.find(g => g.id === garmentId)
-  const colorName  = TSHIRT_COLORS.find(c => c.hex === selectedColor)?.name || ''
-  const colorStyle = getColorStyle(selectedColor)
+  const garment   = GARMENT_TYPES.find(g => g.id === garmentId)
+  const colorName = TSHIRT_COLORS.find(c => c.hex === selectedColor)?.name || ''
+
+  /* Print area as CSS % of the SVG container — for the <img> overlay */
+  const printOverlay = {
+    left:   `${(PA.x / VB_W) * 100}%`,
+    top:    `${(PA.y / VB_H) * 100}%`,
+    width:  `${(PA.w / VB_W) * 100}%`,
+    height: `${(PA.h / VB_H) * 100}%`,
+  }
 
   function handleUpload(e) {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = ev => {
-      setUploadedImage(ev.target.result)
-      // centre the design in the print area when first uploaded
-      setImagePos({ x: 0, y: 0 })
-    }
+    reader.onload = ev => setUploadedImage(ev.target.result)
     reader.readAsDataURL(file)
     e.target.value = ''
   }
 
-  function handleMouseDown(e) {
-    e.preventDefault()
-    setIsDragging(true)
-    setDragStart({ x: e.clientX - imagePos.x, y: e.clientY - imagePos.y })
-  }
-  function handleMouseMove(e) {
-    if (!isDragging) return
-    setImagePos({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
-  }
-  function handleMouseUp() { setIsDragging(false) }
-
   function switchGarment(id) {
     setGarmentId(id)
     const g = GARMENT_TYPES.find(t => t.id === id)
-    // reset size if current size not in new garment's sizes
     if (!g.sizes.includes(selectedSize)) setSelectedSize(g.sizes[1] || g.sizes[0])
   }
 
@@ -137,7 +197,7 @@ export default function DesignYourOwn() {
       name:        `Custom ${garment.label} — ${colorName}`,
       price:       garment.price,
       description: `Custom designed ${garment.label}`,
-      image:       garment.image,
+      image:       'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
       category:    'Custom',
     }
     addToCart(product, selectedSize, selectedColor, 1)
@@ -146,7 +206,7 @@ export default function DesignYourOwn() {
 
   return (
     <div className="min-h-screen bg-black text-white pt-16">
-      {/* Glow */}
+      {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 right-1/4 w-80 h-80 bg-[#C8F135]/3 rounded-full blur-3xl" />
       </div>
@@ -157,111 +217,51 @@ export default function DesignYourOwn() {
         <div className="border-b border-white/10 pb-8 mb-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#C8F135] mb-2">Customise</p>
           <h1 className="text-4xl font-black tracking-tight">DESIGN YOUR OWN</h1>
-          <p className="text-white/30 text-sm mt-1">Choose a style, pick your colour, upload your art</p>
+          <p className="text-white/30 text-sm mt-1">Pick a style, choose your colour, upload your art</p>
         </div>
 
-        {/* ── Main 2-col layout ── */}
+        {/* ── 2-col layout ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-          {/* ── LEFT: Realistic mockup preview ── */}
+          {/* LEFT — T-shirt preview */}
           <div>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 mb-4">Preview</p>
 
+            {/* Container keeps the SVG aspect ratio; the design overlay is absolute inside */}
             <div
-              ref={previewRef}
-              className="relative w-full aspect-square bg-zinc-100 overflow-hidden select-none cursor-crosshair"
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
+              className="relative w-full bg-zinc-900 border border-white/10"
+              style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
             >
-              {/* Realistic shirt photo */}
-              <img
-                src={garment.image}
-                alt={garment.label}
-                className="w-full h-full object-cover object-top pointer-events-none"
-                style={{ filter: colorStyle.imgFilter, transition: 'filter 0.3s ease' }}
-                onError={e => {
-                  // fallback to a reliable unsplash white tee
-                  e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600'
-                }}
-              />
+              {/* SVG t-shirt */}
+              <div className="absolute inset-0">
+                <TShirtSVG color={selectedColor} hasDesign={!!uploadedImage} />
+              </div>
 
-              {/* Colour multiply overlay */}
-              {colorStyle.overlay && (
-                <div
-                  className="absolute inset-0 pointer-events-none transition-all duration-300"
-                  style={colorStyle.overlay}
-                />
-              )}
-
-              {/* Uploaded design — draggable, centred in print area by default */}
+              {/* Uploaded design — rendered exactly within the print area */}
               {uploadedImage && (
                 <div
-                  className="absolute"
-                  style={{
-                    top:    garment.printTop,
-                    left:   garment.printLeft,
-                    width:  garment.printWidth,
-                    height: garment.printHeight,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'visible',
-                  }}
+                  className="absolute pointer-events-none flex items-center justify-center"
+                  style={printOverlay}
                 >
                   <img
                     src={uploadedImage}
                     alt="custom design"
                     draggable={false}
-                    onMouseDown={handleMouseDown}
-                    style={{
-                      position:   'relative',
-                      left:       imagePos.x,
-                      top:        imagePos.y,
-                      width:      imageSize,
-                      height:     imageSize,
-                      cursor:     isDragging ? 'grabbing' : 'grab',
-                      userSelect: 'none',
-                      border:     '2px dashed rgba(200,241,53,0.55)',
-                      objectFit:  'contain',
-                    }}
+                    className="w-full h-full object-contain"
+                    style={{ userSelect: 'none' }}
                   />
-                </div>
-              )}
-
-              {/* Empty-state hint over the print area */}
-              {!uploadedImage && (
-                <div
-                  className="absolute flex items-center justify-center pointer-events-none"
-                  style={{
-                    top: garment.printTop, left: garment.printLeft,
-                    width: garment.printWidth, height: garment.printHeight,
-                  }}
-                >
-                  <div className="border border-dashed border-white/20 w-full h-full flex items-center justify-center">
-                    <p className="text-xs text-white/30 tracking-widest uppercase text-center px-2">
-                      Your design here
-                    </p>
-                  </div>
                 </div>
               )}
             </div>
 
-            {/* Design size slider */}
-            {uploadedImage && (
-              <div className="mt-4 flex items-center gap-4 border border-white/10 px-4 py-3">
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 whitespace-nowrap">Print Size</span>
-                <input
-                  type="range" min="50" max="280" value={imageSize}
-                  onChange={e => setImageSize(Number(e.target.value))}
-                  className="flex-1 accent-[#C8F135]"
-                />
-                <span className="text-xs text-white/40 w-10 text-right">{imageSize}px</span>
-              </div>
-            )}
+            {/* Print spec badge */}
+            <div className="mt-3 flex items-center gap-2 text-[10px] tracking-widest text-white/25 uppercase">
+              <span className="w-2 h-2 rounded-full bg-[#C8F135]/50 flex-shrink-0" />
+              <span>Print area — 14 × 16 in &nbsp;·&nbsp; DTG printing &nbsp;·&nbsp; Full colour</span>
+            </div>
           </div>
 
-          {/* ── RIGHT: Controls ── */}
+          {/* RIGHT — Controls */}
           <div className="space-y-5">
 
             {/* Upload */}
@@ -279,7 +279,7 @@ export default function DesignYourOwn() {
                 <p className="text-xs font-black tracking-widest uppercase text-white/30 group-hover:text-[#C8F135] transition-colors">
                   {uploadedImage ? 'Replace Design' : 'Click to Upload'}
                 </p>
-                <p className="text-xs text-white/15 mt-1">PNG, JPG, SVG supported</p>
+                <p className="text-[10px] text-white/15 mt-1">PNG, JPG, SVG · shown in 14 × 16 in print area</p>
               </button>
               {uploadedImage && (
                 <button onClick={() => setUploadedImage(null)}
@@ -289,7 +289,7 @@ export default function DesignYourOwn() {
               )}
             </div>
 
-            {/* Garment Style */}
+            {/* Garment style */}
             <div className="border border-white/10 p-6">
               <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 mb-3">Select Style</p>
               <div className="relative">
@@ -299,9 +299,7 @@ export default function DesignYourOwn() {
                   className="w-full appearance-none bg-zinc-900 border border-white/10 text-white px-4 py-3 pr-10 text-sm font-bold focus:border-[#C8F135] outline-none transition-colors cursor-pointer"
                 >
                   {GARMENT_TYPES.map(g => (
-                    <option key={g.id} value={g.id}>
-                      {g.label} — ₹{g.price}
-                    </option>
+                    <option key={g.id} value={g.id}>{g.label} — ₹{g.price}</option>
                   ))}
                 </select>
                 <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
@@ -317,11 +315,11 @@ export default function DesignYourOwn() {
               </div>
             </div>
 
-            {/* Colour picker */}
+            {/* Colour */}
             <div className="border border-white/10 p-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40">Garment Colour</p>
-                <span className="text-xs font-black" style={{ color: '#C8F135' }}>{colorName}</span>
+                <span className="text-xs font-black text-[#C8F135]">{colorName}</span>
               </div>
               <div className="flex gap-3 flex-wrap">
                 {TSHIRT_COLORS.map(({ hex, name }) => (
@@ -362,13 +360,14 @@ export default function DesignYourOwn() {
             <div className="border border-white/10 p-6">
               <div className="flex justify-between items-center mb-4">
                 <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40">Order Summary</p>
-                <span className="text-2xl font-black" style={{ color: '#C8F135' }}>₹{garment.price}</span>
+                <span className="text-2xl font-black text-[#C8F135]">₹{garment.price}</span>
               </div>
               <div className="text-xs text-white/40 space-y-1 mb-6 border-t border-white/10 pt-4 tracking-wider">
                 <p>Style: <span className="text-white/70">{garment.label}</span></p>
                 <p>Colour: <span className="text-white/70">{colorName}</span></p>
                 <p>Size: <span className="text-white/70">{selectedSize}</span></p>
-                <p>Design: <span className="text-white/70">{uploadedImage ? 'Custom print added' : 'No design — blank garment'}</span></p>
+                <p>Print: <span className="text-white/70">14 × 16 in area</span></p>
+                <p>Design: <span className="text-white/70">{uploadedImage ? 'Custom artwork uploaded' : 'No design — blank garment'}</span></p>
                 <p className="pt-1 text-white/20">Free shipping on orders above ₹999</p>
               </div>
               <motion.button
