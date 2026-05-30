@@ -25,11 +25,11 @@ const TSHIRT_COLORS = [
 ]
 
 /*
-  User's own black crew-neck tee photo (tshirt-mockup.jpg in /public).
-  CSS filter applied per colour to approximate different garment colours.
-  The base image is BLACK so filters shift from dark → other tones.
+  User's own black crew-neck tee photo (tshirt-mockup.png in /public).
+  Background-removed transparent PNG so CSS filter only tints the shirt,
+  not the canvas background.  Base image is BLACK → filters shift to other tones.
 */
-const SHIRT_IMG = '/tshirt-mockup.jpg'
+const SHIRT_IMG = '/tshirt-mockup.png'
 
 /*  CSS filter per garment colour (base = black shirt)  */
 const COLOR_FILTERS = {
@@ -44,14 +44,20 @@ const COLOR_FILTERS = {
 }
 
 /*
-  Print-area calibrated to tshirt-mockup.jpg on a square canvas.
-  Shirt collar ≈ top 5 % → shoulder seam ≈ 14 % → chest print starts ~17 %.
-  14 × 16 in on an ~19 in chest:
-    width  = (14/19) × 90% shirt coverage ≈ 54 %
-    height = 54 % × (16/14)              ≈ 62 %   (for a 1:1 canvas)
-  Centre: left = (100 − 54) / 2 = 23 %
+  Print-area calibrated to tshirt-mockup.png on a 1:1 square canvas.
+  Image is 1356 × 1320 px (aspect ≈ 1.027); with object-contain the image
+  fills the full canvas width and 97.4 % of the height (1.33 % letterbox).
+
+  Shirt bounding box  (image px): left=36, right=1236 → width=1200 (88.5 % of 1356)
+  Shirt centre-X on canvas: (36+1236)/2 / 1356 ≈ 46.9 %
+
+  14 × 16 in print area on a ~19 in chest shirt:
+    width  = 14/19 × 88.5 %             ≈ 65 %
+    height = 65 % × (16/14)             ≈ 74 %
+    left   = 46.9 % − 65 %/2            ≈ 14 %
+    top    = 1.33 % + 3.5in/20in × 97 % ≈ 18 %   (print starts ~3.5 in below collar)
 */
-const PA = { top: '17%', left: '23%', width: '54%', height: '55%' }
+const PA = { top: '18%', left: '14%', width: '65%', height: '74%' }
 
 /* Qikink-blue palette */
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
@@ -138,7 +144,7 @@ export default function DesignYourOwn() {
                   transition: 'filter 0.25s ease',
                 }}
                 onError={e => {
-                  e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600'
+                  e.target.src = '/tshirt-mockup.jpg'  // fallback to original jpg if png fails
                 }}
               />
 
