@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import ProductCard from '../components/ProductCard'
@@ -41,6 +41,7 @@ const PANELS = [
 ]
 
 export default function Home() {
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
 
   useEffect(() => {
@@ -58,7 +59,8 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: i * 0.15 }}
-            className="relative overflow-hidden group cursor-pointer"
+            onClick={() => panel.link && navigate(panel.link)}
+            className={`relative overflow-hidden group ${panel.link ? 'cursor-pointer' : 'cursor-default'}`}
           >
             {/* Background image */}
             <img
@@ -94,22 +96,20 @@ export default function Home() {
                 </h2>
 
                 {panel.cta && panel.link && (
-                  <Link to={panel.link}>
-                    <motion.div
-                      whileHover={{ x: 6 }}
-                      className="inline-flex items-center gap-3 group/btn"
+                  <motion.div
+                    whileHover={{ x: 6 }}
+                    className="inline-flex items-center gap-3 group/btn"
+                  >
+                    <span className="text-sm font-bold tracking-widest uppercase text-white border-b border-white/40 pb-0.5 group-hover/btn:border-white transition-colors">
+                      {panel.cta}
+                    </span>
+                    <span
+                      className="text-lg transition-colors"
+                      style={{ color: panel.accent === 'neon' ? '#C8F135' : '#C0C0C0' }}
                     >
-                      <span className="text-sm font-bold tracking-widest uppercase text-white border-b border-white/40 pb-0.5 group-hover/btn:border-white transition-colors">
-                        {panel.cta}
-                      </span>
-                      <span
-                        className="text-lg transition-colors"
-                        style={{ color: panel.accent === 'neon' ? '#C8F135' : '#C0C0C0' }}
-                      >
-                        →
-                      </span>
-                    </motion.div>
-                  </Link>
+                      →
+                    </span>
+                  </motion.div>
                 )}
 
                 {/* Panel 2: brand statement instead of CTA */}
