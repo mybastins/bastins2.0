@@ -45,19 +45,21 @@ const COLOR_FILTERS = {
 
 /*
   Print-area calibrated to tshirt-mockup.png on a 1:1 square canvas.
-  Image is 1356 × 1320 px (aspect ≈ 1.027); with object-contain the image
-  fills the full canvas width and 97.4 % of the height (1.33 % letterbox).
+  Image is 1356 × 1320 px; with object-contain the image fills full canvas
+  width, 97.4 % of canvas height, with 1.33 % top letterbox.
 
-  Shirt bounding box  (image px): left=36, right=1236 → width=1200 (88.5 % of 1356)
-  Shirt centre-X on canvas: (36+1236)/2 / 1356 ≈ 46.9 %
+  Pixel scan of the PNG at different canvas heights reveals:
+    y = 18–55 %  → shirt 66–86 % wide  (includes sleeves extending left/right)
+    y = 60–80 %  → shirt TORSO  ≈ 20 %–74 % = 54 % wide  (printable front panel)
+  Torso centre ≈ 47 %.
 
-  14 × 16 in print area on a ~19 in chest shirt:
-    width  = 14/19 × 88.5 %             ≈ 65 %
-    height = 65 % × (16/14)             ≈ 74 %
-    left   = 46.9 % − 65 %/2            ≈ 14 %
-    top    = 1.33 % + 3.5in/20in × 97 % ≈ 18 %   (print starts ~3.5 in below collar)
+  14 × 16 in print area on an 18 in chest shirt:
+    width  = 14/18 × 54 %   ≈ 42 %
+    height = 42 % × (16/14) ≈ 48 %        (maintains 14:16 portrait ratio)
+    left   = 47 % − 21 %    = 26 %        (centred on torso; 6 % margin each side)
+    top    = 22 %                          (below collar, above full-width torso)
 */
-const PA = { top: '18%', left: '14%', width: '65%', height: '74%' }
+const PA = { top: '22%', left: '26%', width: '42%', height: '48%' }
 
 /* Qikink-blue palette */
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
