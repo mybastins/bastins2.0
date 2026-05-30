@@ -25,39 +25,23 @@ const TSHIRT_COLORS = [
 ]
 
 /*
-  User's own black crew-neck tee photo (tshirt-mockup.png in /public).
-  Background-removed transparent PNG so CSS filter only tints the shirt,
-  not the canvas background.  Base image is BLACK → filters shift to other tones.
+  tshirt-base.png — background-removed, normalised to 65–92 % grey.
+  A colour overlay with mix-blend-mode:multiply is masked to the shirt
+  shape and blended on top, giving photorealistic shirt colours without
+  affecting the canvas background.
 */
-const SHIRT_IMG = '/tshirt-mockup.png'
-
-/*  CSS filter per garment colour (base = black shirt)  */
-const COLOR_FILTERS = {
-  '#111111': 'brightness(1)',                                                  // Black  – natural
-  '#FFFFFF': 'brightness(2.4) saturate(0) contrast(0.7)',                     // White  – desaturated + bright
-  '#C8F135': 'brightness(1.1) sepia(1) saturate(12) hue-rotate(57deg)',       // Lime
-  '#C0C0C0': 'brightness(2.0) saturate(0)',                                   // Silver
-  '#1a1a2e': 'brightness(0.9) sepia(1) saturate(6) hue-rotate(200deg)',       // Navy
-  '#2d2d2d': 'brightness(1.35) saturate(0)',                                  // Charcoal
-  '#8B0000': 'brightness(0.95) sepia(1) saturate(7) hue-rotate(325deg)',      // Burgundy
-  '#4a4a4a': 'brightness(1.6) saturate(0)',                                   // Slate
-}
+const SHIRT_BASE = '/tshirt-base.png'
 
 /*
-  Print-area calibrated to tshirt-mockup.png on a 1:1 square canvas.
-  Image is 1356 × 1320 px; with object-contain the image fills full canvas
-  width, 97.4 % of canvas height, with 1.33 % top letterbox.
-
-  Pixel scan of the PNG at different canvas heights reveals:
-    y = 18–55 %  → shirt 66–86 % wide  (includes sleeves extending left/right)
-    y = 60–80 %  → shirt TORSO  ≈ 20 %–74 % = 54 % wide  (printable front panel)
+  Print-area calibrated to tshirt-base.png on a 1:1 square canvas.
+  Pixel scan shows shirt TORSO ≈ 20 %–74 % wide (sleeves excluded).
   Torso centre ≈ 47 %.
 
   14 × 16 in print area on an 18 in chest shirt:
     width  = 14/18 × 54 %   ≈ 42 %
-    height = 42 % × (16/14) ≈ 48 %        (maintains 14:16 portrait ratio)
-    left   = 47 % − 21 %    = 26 %        (centred on torso; 6 % margin each side)
-    top    = 22 %                          (below collar, above full-width torso)
+    height = 42 % × (16/14) ≈ 48 %
+    left   = 47 % − 21 %    = 26 %
+    top    = 22 %
 */
 const PA = { top: '22%', left: '26%', width: '42%', height: '48%' }
 
@@ -65,6 +49,20 @@ const PA = { top: '22%', left: '26%', width: '42%', height: '48%' }
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
 const BLUE_BDR  = 'rgba(38, 99, 235, 0.80)'
 const BLUE_ICON = '#2563eb'
+
+/* Shared mask style — clips the colour overlay to the shirt silhouette */
+function maskStyle(src) {
+  return {
+    maskImage:          `url(${src})`,
+    maskSize:           'contain',
+    maskPosition:       'center',
+    maskRepeat:         'no-repeat',
+    WebkitMaskImage:    `url(${src})`,
+    WebkitMaskSize:     'contain',
+    WebkitMaskPosition: 'center',
+    WebkitMaskRepeat:   'no-repeat',
+  }
+}
 
 export default function DesignYourOwn() {
   const [garmentId,     setGarmentId]     = useState('mens')
@@ -76,7 +74,6 @@ export default function DesignYourOwn() {
 
   const garment   = GARMENT_TYPES.find(g => g.id === garmentId)
   const colorName = TSHIRT_COLORS.find(c => c.hex === selectedColor)?.name || ''
-  const imgFilter = COLOR_FILTERS[selectedColor] ?? 'brightness(1)'
 
   function handleUpload(e) {
     const file = e.target.files[0]
@@ -100,7 +97,7 @@ export default function DesignYourOwn() {
         name:        `Custom ${garment.label} — ${colorName}`,
         price:       garment.price,
         description: `Custom designed ${garment.label}`,
-        image:       SHIRT_IMG,
+        image:       SHIRT_BASE,
         category:    'Custom',
       },
       selectedSize,
@@ -130,23 +127,30 @@ export default function DesignYourOwn() {
           <div>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 mb-3">Preview</p>
 
-            {/* ── Canvas ── */}
+            {/* ── Canvas — isolated compositing group ── */}
             <div
               className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '1 / 1', background: '#e8e8e8' }}
+              style={{ aspectRatio: '1 / 1', background: '#e8e8e8', isolation: 'isolate' }}
             >
-              {/* Shirt photo, tinted by CSS filter */}
+              {/* Layer 1 — normalised grey shirt base */}
               <img
-                src={SHIRT_IMG}
+                src={SHIRT_BASE}
                 alt="T-shirt"
                 draggable={false}
                 className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
+                onError={e => { e.target.src = '/tshirt-mockup.png' }}
+              />
+
+              {/* Layer 2 — colour overlay (multiply × grey base = realistic shirt colour)
+                  mask-image clips the solid colour div to the exact shirt silhouette
+                  so the canvas background (#e8e8e8) is never tinted               */}
+              <div
+                className="absolute inset-0 pointer-events-none"
                 style={{
-                  filter:     imgFilter,
-                  transition: 'filter 0.25s ease',
-                }}
-                onError={e => {
-                  e.target.src = '/tshirt-mockup.jpg'  // fallback to original jpg if png fails
+                  background:    selectedColor,
+                  mixBlendMode:  'multiply',
+                  transition:    'background 0.25s ease',
+                  ...maskStyle(SHIRT_BASE),
                 }}
               />
 
