@@ -25,38 +25,38 @@ const TSHIRT_COLORS = [
 ]
 
 /*
-  White flat-lay crew-neck tee.
-  CSS filter tints it to any colour without blending issues.
+  User's own black crew-neck tee photo (tshirt-mockup.jpg in /public).
+  CSS filter applied per colour to approximate different garment colours.
+  The base image is BLACK so filters shift from dark → other tones.
 */
-const SHIRT_IMG = 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=700&q=85'
+const SHIRT_IMG = '/tshirt-mockup.jpg'
 
-/*  CSS filter strings per garment colour  */
+/*  CSS filter per garment colour (base = black shirt)  */
 const COLOR_FILTERS = {
-  '#111111': 'brightness(0.07)',
-  '#FFFFFF': 'brightness(1)',
-  '#C8F135': 'brightness(0.58) sepia(1) saturate(8) hue-rotate(56deg)',
-  '#C0C0C0': 'brightness(0.8) saturate(0.05)',
-  '#1a1a2e': 'brightness(0.14) sepia(1) saturate(5) hue-rotate(205deg)',
-  '#2d2d2d': 'brightness(0.17)',
-  '#8B0000': 'brightness(0.28) sepia(1) saturate(6) hue-rotate(328deg)',
-  '#4a4a4a': 'brightness(0.28) saturate(0.2)',
+  '#111111': 'brightness(1)',                                                  // Black  – natural
+  '#FFFFFF': 'brightness(2.4) saturate(0) contrast(0.7)',                     // White  – desaturated + bright
+  '#C8F135': 'brightness(1.1) sepia(1) saturate(12) hue-rotate(57deg)',       // Lime
+  '#C0C0C0': 'brightness(2.0) saturate(0)',                                   // Silver
+  '#1a1a2e': 'brightness(0.9) sepia(1) saturate(6) hue-rotate(200deg)',       // Navy
+  '#2d2d2d': 'brightness(1.35) saturate(0)',                                  // Charcoal
+  '#8B0000': 'brightness(0.95) sepia(1) saturate(7) hue-rotate(325deg)',      // Burgundy
+  '#4a4a4a': 'brightness(1.6) saturate(0)',                                   // Slate
 }
 
 /*
-  Print-area position as % of the preview container.
-  Canvas: 4 ∶ 5 aspect ratio.
-  14 × 16 in print zone:
-    width  = 48 %  → 0.48 W
-    height = 48 % × (16/14) × (4/5) = 43.9 % ≈ 44 %
-  Centre: left = (100 − 48) / 2 = 26 %
-  Top starts 2.5 in below collar (collar ≈ top 14 % of canvas)
+  Print-area calibrated to tshirt-mockup.jpg on a square canvas.
+  Shirt collar ≈ top 5 % → shoulder seam ≈ 14 % → chest print starts ~17 %.
+  14 × 16 in on an ~19 in chest:
+    width  = (14/19) × 90% shirt coverage ≈ 54 %
+    height = 54 % × (16/14)              ≈ 62 %   (for a 1:1 canvas)
+  Centre: left = (100 − 54) / 2 = 23 %
 */
-const PA = { top: '29%', left: '26%', width: '48%', height: '44%' }
+const PA = { top: '17%', left: '23%', width: '54%', height: '55%' }
 
 /* Qikink-blue palette */
-const BLUE      = 'rgba(38, 99, 235, 0.42)'   // fill
-const BLUE_BDR  = 'rgba(38, 99, 235, 0.80)'   // border
-const BLUE_ICON = '#2563eb'                    // solid icon circle
+const BLUE      = 'rgba(38, 99, 235, 0.42)'
+const BLUE_BDR  = 'rgba(38, 99, 235, 0.80)'
+const BLUE_ICON = '#2563eb'
 
 export default function DesignYourOwn() {
   const [garmentId,     setGarmentId]     = useState('mens')
@@ -125,14 +125,14 @@ export default function DesignYourOwn() {
             {/* ── Canvas ── */}
             <div
               className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '4 / 5', background: '#ebebeb' }}
+              style={{ aspectRatio: '1 / 1', background: '#e8e8e8' }}
             >
               {/* Shirt photo, tinted by CSS filter */}
               <img
                 src={SHIRT_IMG}
                 alt="T-shirt"
                 draggable={false}
-                className="absolute inset-0 w-full h-full object-cover object-top select-none pointer-events-none"
+                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
                 style={{
                   filter:     imgFilter,
                   transition: 'filter 0.25s ease',
