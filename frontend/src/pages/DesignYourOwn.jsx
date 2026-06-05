@@ -33,20 +33,19 @@ const SHIRT_BASE = '/tshirt-white.png'
 
 /*
   Print-area calibrated to tshirt-white.png on a 1:1 square canvas.
-  Image 736×736 (aspect 1:1) → object-contain fills canvas exactly, no letterbox.
+  Image 943×943 (padded square from 736×943 source) → fills canvas exactly.
 
-  Pixel scan (shadow-cleaned PNG):
-    Torso (below armhole, y=50–80 % of image):
-      Left  ≈ 23.5 %   Right ≈ 75 %   Width ≈ 51 %   Centre ≈ 49.3 %
-    Collar bottom ≈ canvas y 18 %.
+  Pixel scan (corner-corrected, shadow-removed PNG):
+    Torso (y=50–65 %): L≈30 %  R≈71 %  W≈41 %  Centre≈50.4 %
+    Collar bottom ≈ canvas y 15–17 %.
 
   14 × 16 in print area centred on front torso:
-    width  = 38 %   (6.5 % margin inside each torso edge)
-    height = 38 % × (16/14) ≈ 43 %
-    left   = 49.3 % − 19 % = 30.3 % → 30 %
-    top    = 19 %   (just below collar band)
+    width  = 30 %   (5 % margin inside each torso edge)
+    height = 30 % × (16/14) ≈ 34 %
+    left   = 50 % − 15 % = 35 %
+    top    = 17 %   (just below collar band)
 */
-const PA = { top: '19%', left: '30%', width: '38%', height: '43%' }
+const PA = { top: '22%', left: '35%', width: '30%', height: '34%' }
 
 /* Qikink-blue palette */
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
@@ -133,7 +132,7 @@ export default function DesignYourOwn() {
             {/* ── Canvas — isolated compositing group ── */}
             <div
               className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '1 / 1', background: '#D7D3CB' }}
+              style={{ aspectRatio: '1 / 1', background: '#B2AFA6' }}
             >
               {/* Layer 1 — normalised grey shirt base */}
               <img
