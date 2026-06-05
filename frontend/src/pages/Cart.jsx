@@ -20,7 +20,8 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-black text-white pt-16">
       <div className="max-w-5xl mx-auto px-6 py-12">
-        <h1 className="text-5xl font-black tracking-tight mb-10">YOUR CART</h1>
+        <p className="text-xs tracking-[0.3em] uppercase text-[#C8F135] mb-2">Your</p>
+        <h1 className="text-5xl font-black tracking-tight mb-10">CART</h1>
 
         {cart.length === 0 ? (
           <div className="text-center py-20">
@@ -42,10 +43,10 @@ export default function Cart() {
                     <p className="font-black text-sm">{item.name}</p>
                     <p className="text-xs text-white/40 mt-0.5">{item.size} · {item.color}</p>
                     <p className="font-black text-[#C8F135] mt-1">₹{item.price}</p>
-                    <div className="flex items-center gap-2 mt-2 border border-white/10 w-fit">
-                      <button onClick={() => updateQuantity(item.key, item.quantity - 1)} className="w-8 h-8 text-white hover:bg-white/10 transition-colors">−</button>
-                      <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.key, item.quantity + 1)} className="w-8 h-8 text-white hover:bg-white/10 transition-colors">+</button>
+                    <div className="flex items-center mt-2 border border-white/10 w-fit">
+                      <button onClick={() => updateQuantity(item.key, item.quantity - 1)} className="w-8 h-8 text-white hover:bg-white/10 transition-colors font-black">−</button>
+                      <span className="w-8 text-center text-sm font-bold border-x border-white/10">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.key, item.quantity + 1)} className="w-8 h-8 text-white hover:bg-white/10 transition-colors font-black">+</button>
                     </div>
                   </div>
                   <div className="flex flex-col items-end justify-between">
