@@ -33,19 +33,20 @@ const SHIRT_BASE = '/tshirt-white.png'
 
 /*
   Print-area calibrated to tshirt-white.png on a 1:1 square canvas.
-  Image 1534×1432 (aspect 1.071) → object-contain: full width, 93.4 % height,
-  3.3 % top letterbox.
+  Image 736×736 (aspect 1:1) → object-contain fills canvas exactly, no letterbox.
 
-  Pixel scan: shirt TORSO (below armhole) = 16 %–72 % wide on canvas.
-  Torso centre ≈ 44 %. Collar/shoulder region ~y=10–20 %.
+  Pixel scan (shadow-cleaned PNG):
+    Torso (below armhole, y=50–80 % of image):
+      Left  ≈ 23.5 %   Right ≈ 75 %   Width ≈ 51 %   Centre ≈ 49.3 %
+    Collar bottom ≈ canvas y 18 %.
 
-  14 × 16 in print area on an 18 in chest:
-    width  = 14/18 × 56 %   ≈ 44 %
-    height = 44 % × (16/14) ≈ 50 %
-    left   = 44 % − 22 %    = 22 %   (centred; 6 % margin each side)
-    top    = 18 %                     (below collar, above sleeve-end)
+  14 × 16 in print area centred on front torso:
+    width  = 38 %   (6.5 % margin inside each torso edge)
+    height = 38 % × (16/14) ≈ 43 %
+    left   = 49.3 % − 19 % = 30.3 % → 30 %
+    top    = 19 %   (just below collar band)
 */
-const PA = { top: '18%', left: '22%', width: '44%', height: '50%' }
+const PA = { top: '19%', left: '30%', width: '38%', height: '43%' }
 
 /* Qikink-blue palette */
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
@@ -132,7 +133,7 @@ export default function DesignYourOwn() {
             {/* ── Canvas — isolated compositing group ── */}
             <div
               className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '1 / 1', background: '#e4e7ea', isolation: 'isolate' }}
+              style={{ aspectRatio: '1 / 1', background: '#D7D3CB' }}
             >
               {/* Layer 1 — normalised grey shirt base */}
               <img
