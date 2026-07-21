@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { readDB, writeDB } = require('../db');
+const { getDb } = require('../lib/mongo');
 const { JWT_SECRET } = require('../middleware/auth');
 
 // Register
@@ -13,8 +13,10 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json({ error: 'All fields are required' });
 
-    const db = readDB();
-    if (db.users.find(u => u.email === email))
+    const db = await getDb();
+    const users = db.collection('users');
+
+    if (await users.findOne({ email }))
       return res.status(400).json({ error: 'Email already registered' });
 
     const user = {
@@ -24,8 +26,7 @@ router.post('/register', async (req, res) => {
       role: 'user', phone: '', address: '',
       createdAt: new Date().toISOString()
     };
-    db.users.push(user);
-    writeDB(db);
+    await users.insertOne(user);
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
@@ -39,13 +40,13 @@ router.post('/login', async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ error: 'Username/email and password required' });
 
-    const db = readDB();
+    const db = await getDb();
+    const users = db.collection('users');
+
     // Match by username field, email field, or name === "admin"
-    const user = db.users.find(u =>
-      u.email === email ||
-      u.username === email ||
-      (u.role === 'admin' && email === 'admin')
-    );
+    const orConditions = [{ email }, { username: email }];
+    if (email === 'admin') orConditions.push({ role: 'admin' });
+    const user = await users.findOne({ $or: orConditions });
     if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
     const valid = await bcrypt.compare(password, user.password);
@@ -62,11 +63,14 @@ router.post('/reset-password', async (req, res) => {
     const { email, newPassword } = req.body;
     if (!email || !newPassword)
       return res.status(400).json({ error: 'Email and new password required' });
-    const db = readDB();
-    const idx = db.users.findIndex(u => u.email === email || u.username === email);
-    if (idx === -1) return res.status(404).json({ error: 'User not found' });
-    db.users[idx].password = await bcrypt.hash(newPassword, 10);
-    writeDB(db);
+
+    const db = await getDb();
+    const users = db.collection('users');
+    const result = await users.updateOne(
+      { $or: [{ email }, { username: email }] },
+      { $set: { password: await bcrypt.hash(newPassword, 10) } }
+    );
+    if (result.matchedCount === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'Password reset successfully' });
   } catch { res.status(500).json({ error: 'Server error' }); }
 });

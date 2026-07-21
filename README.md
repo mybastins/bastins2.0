@@ -25,12 +25,12 @@ A modern, fully-featured e-commerce website for fashion brand **BASTINS** sellin
 - **Animations** - Smooth Framer Motion animations throughout
 
 ### Backend
-- **REST API** - Express.js server
+- **REST API** - Express.js, deployed as a Vercel serverless function
 - **Authentication** - JWT tokens with password hashing
 - **Product Management** - CRUD operations with category support
 - **Order Management** - Create orders, track status
-- **File Uploads** - Image uploads and Excel bulk import
-- **JSON Database** - Simple file-based persistence
+- **Bulk Import** - Excel (.xlsx) product upload
+- **MongoDB Atlas** - Persistent database
 
 ## 🚀 Tech Stack
 
@@ -45,10 +45,10 @@ A modern, fully-featured e-commerce website for fashion brand **BASTINS** sellin
 - Zustand for state management (setup ready)
 
 ### Backend
-- Node.js + Express.js
+- Node.js + Express.js (runs as a Vercel serverless function)
 - JWT authentication with bcryptjs
-- JSON file-based database
-- Multer for file uploads
+- MongoDB Atlas database
+- Multer (in-memory) for Excel bulk upload
 - XLSX for Excel parsing
 
 ## 📋 Prerequisites
@@ -59,42 +59,58 @@ A modern, fully-featured e-commerce website for fashion brand **BASTINS** sellin
 
 ## 🔧 Setup & Installation
 
-### 1. Backend Setup
+The frontend and backend now live in one project (`frontend/`) — the API runs as Vercel serverless functions under `frontend/api`, backed by MongoDB Atlas.
+
+### 1. Install dependencies
 
 ```bash
-cd D:\Bastins\backend
+cd frontend
 npm install
-npm start
 ```
 
-The backend will run on `http://localhost:5000`
+### 2. Configure environment
 
-### 2. Frontend Setup
+Copy `frontend/.env.example` to `frontend/.env` and fill in:
+- `MONGODB_URI` — connection string from your MongoDB Atlas cluster
+- `JWT_SECRET` — any long random string
+
+### 3. Seed the database (first time only)
 
 ```bash
-cd D:\Bastins\frontend
-npm install
-npm run dev
+npm run seed
 ```
 
-The frontend will run on `http://localhost:3000`
+Creates the default admin (`admin` / `bastin123`) and sample products/collections if they don't already exist.
+
+### 4. Run locally
+
+```bash
+npm run dev:api   # API on http://localhost:5001
+npm run dev        # Frontend on http://localhost:3000 (proxies /api to the API above)
+```
 
 ## 📂 Project Structure
 
 ```
-D:\Bastins\
-├── backend/
-│   ├── routes/
-│   │   ├── auth.js          # Login, Register, Password Reset
-│   │   ├── products.js      # Product CRUD & Bulk Upload
-│   │   └── orders.js        # Order Creation & Tracking
-│   ├── middleware/
-│   │   └── auth.js          # JWT Authentication
-│   ├── db.js                # JSON Database Handler
-│   ├── server.js            # Express Server
-│   └── package.json
-│
+Bastins/
 └── frontend/
+    ├── api/
+    │   └── index.js          # Vercel serverless entrypoint (exports the Express app)
+    ├── server/
+    │   ├── routes/
+    │   │   ├── auth.js       # Login, Register, Password Reset
+    │   │   ├── products.js   # Product CRUD & Bulk Upload
+    │   │   ├── orders.js     # Order Creation & Tracking
+    │   │   ├── customers.js  # Customer profile & admin listing
+    │   │   └── collections.js # Collections/categories metadata
+    │   ├── middleware/
+    │   │   └── auth.js       # JWT Authentication
+    │   ├── lib/
+    │   │   └── mongo.js      # MongoDB connection helper
+    │   ├── scripts/
+    │   │   └── seed.js       # One-time DB seed script
+    │   ├── app.js             # Express app (routes mounted here)
+    │   └── local.js           # Local dev server (npm run dev:api)
     ├── src/
     │   ├── pages/
     │   │   ├── Home.jsx
@@ -130,7 +146,7 @@ D:\Bastins\
 
 ## 🔑 Default Admin Credentials
 
-The app comes with an admin user pre-configured. Register a new account and manually set role to "admin" in the database, or create one through the API.
+Running `npm run seed` creates a default admin: username `admin`, password `bastin123`. Change this password after first login.
 
 ## 📊 Database Schema
 
@@ -247,24 +263,18 @@ Edit `src/pages/DesignYourOwn.jsx` to:
 
 ## 🚀 Deployment
 
-### Frontend (Vercel/Netlify)
-```bash
-cd frontend
-npm run build
-# Upload dist folder
-```
+Both frontend and API deploy together as one Vercel project rooted at `frontend/`:
 
-### Backend (Heroku/Railway)
-```bash
-cd backend
-git push heroku main
-```
+1. In the Vercel dashboard, set the project's Root Directory to `frontend`.
+2. Add `MONGODB_URI` and `JWT_SECRET` as environment variables (Production + Preview).
+3. Push to the connected GitHub branch — Vercel builds the Vite frontend and deploys `frontend/api/index.js` as a serverless function automatically.
+4. Run `npm run seed` once (locally, pointed at the Atlas cluster via `.env`) to create the default admin and sample data.
 
 ## 🐛 Troubleshooting
 
 ### "API not found" error
-- Make sure backend is running on http://localhost:5000
-- Check CORS settings in backend/server.js
+- Make sure `MONGODB_URI` and `JWT_SECRET` are set in the Vercel project's environment variables
+- For local dev, make sure `npm run dev:api` is running alongside `npm run dev`
 
 ### Images not loading
 - Check uploads folder permissions
