@@ -7,6 +7,7 @@ import { WishlistProvider } from './context/WishlistContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import CartSidebar from './components/CartSidebar'
+import ScrollToTop from './components/ScrollToTop'
 
 import Home from './pages/Home'
 import Collections from './pages/Collections'
@@ -56,6 +57,7 @@ export default function App() {
             <Toaster position="bottom-right" toastOptions={{
               style: { background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: '13px' }
             }} />
+            <ScrollToTop />
             <Layout>
               <Routes>
                 {/* Customer Pages */}

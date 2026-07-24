@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import ProductCard from '../components/ProductCard'
 
 const PANELS = [
   {
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=700&fit=crop&q=80',
+    image: '/images/hero-oversized.jpg',
     tag: 'NEW SEASON',
     title: 'OVERSIZED\nCOLLECTION',
     cta: 'Shop Now',
@@ -14,7 +14,7 @@ const PANELS = [
     accent: 'silver',
   },
   {
-    image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=700&fit=crop&q=80',
+    image: '/images/hero-brand.jpg',
     tag: 'SS 2024',
     title: "BASTIN'S\nCLOTHING",
     cta: null,
@@ -31,7 +31,7 @@ const PANELS = [
     accent: 'silver',
   },
   {
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=700&fit=crop&q=80',
+    image: '/images/hero-design.jpg',
     tag: 'MAKE IT YOURS',
     title: 'DESIGN\nYOUR OWN',
     cta: 'Start Designing',
@@ -41,7 +41,6 @@ const PANELS = [
 ]
 
 export default function Home() {
-  const navigate = useNavigate()
   const [products, setProducts] = useState([])
 
   useEffect(() => {
@@ -59,8 +58,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: i * 0.15 }}
-            onClick={() => panel.link && navigate(panel.link)}
-            className={`relative overflow-hidden group ${panel.link ? 'cursor-pointer' : 'cursor-default'}`}
+            className="relative overflow-hidden group"
           >
             {/* Background image */}
             <img
@@ -96,20 +94,22 @@ export default function Home() {
                 </h2>
 
                 {panel.cta && panel.link && (
-                  <motion.div
-                    whileHover={{ x: 6 }}
-                    className="inline-flex items-center gap-3 group/btn"
-                  >
-                    <span className="text-sm font-bold tracking-widest uppercase text-white border-b border-white/40 pb-0.5 group-hover/btn:border-white transition-colors">
-                      {panel.cta}
-                    </span>
-                    <span
-                      className="text-lg transition-colors"
-                      style={{ color: panel.accent === 'neon' ? '#C8F135' : '#C0C0C0' }}
+                  <Link to={panel.link} className="relative z-20 inline-block">
+                    <motion.div
+                      whileHover={{ x: 6 }}
+                      className="inline-flex items-center gap-3 group/btn"
                     >
-                      →
-                    </span>
-                  </motion.div>
+                      <span className="text-sm font-bold tracking-widest uppercase text-white border-b border-white/40 pb-0.5 group-hover/btn:border-white transition-colors">
+                        {panel.cta}
+                      </span>
+                      <span
+                        className="text-lg transition-colors"
+                        style={{ color: panel.accent === 'neon' ? '#C8F135' : '#C0C0C0' }}
+                      >
+                        →
+                      </span>
+                    </motion.div>
+                  </Link>
                 )}
 
                 {/* Panel 2: brand statement instead of CTA */}
