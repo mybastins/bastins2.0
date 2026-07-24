@@ -109,7 +109,7 @@ export default function Collections() {
         </div>
 
         {/* Collection grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {collections.map((name, i) => {
             const count  = getProductCount(name)
             const cover  = getCover(name)
@@ -122,10 +122,10 @@ export default function Collections() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.07 }}
-                className="relative group bg-black overflow-hidden text-left focus:outline-none"
+                className="relative group bg-black overflow-hidden text-left focus:outline-none rounded-[20px] w-4/5 mx-auto"
               >
                 {/* Cover image */}
-                <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[20px]">
                   <img
                     src={cover}
                     alt={name}

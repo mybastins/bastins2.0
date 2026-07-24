@@ -1,8 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import axios from 'axios'
-import ProductCard from '../components/ProductCard'
 
 const PANELS = [
   {
@@ -23,7 +20,7 @@ const PANELS = [
     textOnly: true,
   },
   {
-    image: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=700&fit=crop&q=80',
+    image: '/images/hero-graphic.png',
     tag: 'BOLD PRINTS',
     title: 'GRAPHIC\nTEES',
     cta: 'Explore',
@@ -41,12 +38,6 @@ const PANELS = [
 ]
 
 export default function Home() {
-  const [products, setProducts] = useState([])
-
-  useEffect(() => {
-    axios.get('/api/products/all').then(r => { if (Array.isArray(r.data)) setProducts(r.data.slice(0, 4)) }).catch(() => {})
-  }, [])
-
   return (
     <div className="min-h-screen bg-black text-white">
 
@@ -89,7 +80,7 @@ export default function Home() {
 
               {/* Bottom content */}
               <div>
-                <h2 className="text-base md:text-4xl lg:text-5xl font-black leading-tight tracking-tighter text-white mb-2 md:mb-5 whitespace-pre-line">
+                <h2 className="text-sm sm:text-lg md:text-xl lg:text-3xl xl:text-4xl font-black leading-tight tracking-tighter text-white mb-2 md:mb-5 whitespace-pre-line break-words">
                   {panel.title}
                 </h2>
 
@@ -149,12 +140,12 @@ export default function Home() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/10">
             {[
-              { name: 'Oversized Tees', img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&fit=crop&q=80' },
-              { name: 'Graphic Tees',   img: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&fit=crop&q=80' },
-              { name: 'Vintage',        img: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&fit=crop&q=80' },
-              { name: 'Minimal',        img: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&fit=crop&q=80' },
+              { name: 'Solid Plain T-shirts',     img: '/images/collection-solids.png' },
+              { name: 'Graphic Printed T-shirts', img: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&fit=crop&q=80' },
+              { name: 'Oversized T-shirts',       img: '/images/collection-oversized.png' },
+              { name: 'Hoodies',                  img: '/images/collection-hoodies.png' },
             ].map((cat) => (
-              <Link key={cat.name} to={`/category/${cat.name}`}>
+              <Link key={cat.name} to="/collections">
                 <motion.div whileHover="hover" className="relative aspect-square overflow-hidden group bg-black">
                   <img src={cat.img} alt={cat.name}
                     className="w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-500" />
@@ -174,7 +165,7 @@ export default function Home() {
       {/* ── FULL-WIDTH CTA ── */}
       <section className="mt-10 relative overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=1600&fit=crop&q=80"
+          src="/images/cta-design-your-own.png"
           alt="Design Your Own"
           className="w-full h-96 object-cover opacity-40"
         />
@@ -195,39 +186,6 @@ export default function Home() {
             </motion.button>
           </Link>
         </div>
-      </section>
-
-      {/* ── FEATURED DROPS ── */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <div className="flex items-end justify-between mb-8 md:mb-12">
-            <div>
-              <p className="text-xs tracking-[0.3em] uppercase text-[#C0C0C0] mb-2">Featured</p>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
-                NEW <span style={{ color: '#C8F135' }}>DROPS</span>
-              </h2>
-            </div>
-            <Link to="/collections"
-              className="text-sm font-bold tracking-widest uppercase text-white/50 hover:text-white border-b border-white/20 hover:border-white pb-1 transition-all">
-              View All →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 gap-px bg-white/10">
-            {products.map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="bg-black"
-              >
-                <ProductCard product={p} />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </section>
 
     </div>

@@ -30,14 +30,14 @@ export default function Navbar() {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
-        <div className="max-w-full px-4 md:px-6 h-16 flex items-center justify-between">
+        <div className="max-w-full px-4 md:px-6 h-16 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
 
-          {/* Left: Hamburger (mobile) | Nav links (desktop) */}
-          <div className="flex items-center">
+          {/* Left: Hamburger (mobile/tablet) | Nav links (desktop) */}
+          <div className="flex items-center min-w-0 justify-self-start">
             {/* Hamburger button */}
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-[5px]"
+              className="xl:hidden flex flex-col justify-center items-center w-10 h-10 gap-[5px] flex-shrink-0"
               aria-label="Menu"
             >
               <span className={`block w-5 h-0.5 bg-white origin-center transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
@@ -46,10 +46,10 @@ export default function Navbar() {
             </button>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden xl:flex items-center gap-6 xl:gap-8 min-w-0">
               {NAV_LINKS.slice(0, 5).map(([to, label]) => (
                 <Link key={to} to={to}
-                  className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors">
+                  className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors whitespace-nowrap">
                   {label}
                 </Link>
               ))}
@@ -57,31 +57,31 @@ export default function Navbar() {
           </div>
 
           {/* Center: Logo */}
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2">
+          <Link to="/" className="justify-self-center flex-shrink-0">
             <img src="/logo.png" alt="BASTIN'S" className="h-7 md:h-8 w-auto object-contain" />
           </Link>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-4 md:gap-5">
-            <Link to="/track" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden md:block">
+          <div className="flex items-center gap-3 xl:gap-5 justify-self-end min-w-0">
+            <Link to="/track" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden xl:block whitespace-nowrap">
               TRACK ORDER
             </Link>
             {user?.role === 'admin' && (
-              <Link to="/admin" className="text-xs font-bold tracking-widest hidden md:block transition-colors" style={{ color: '#C8F135' }}>
+              <Link to="/admin" className="text-xs font-bold tracking-widest hidden xl:block transition-colors whitespace-nowrap" style={{ color: '#C8F135' }}>
                 ADMIN
               </Link>
             )}
             {user ? (
               <>
-                <span className="text-xs font-bold tracking-widest text-white/60 hidden md:block">
+                <span className="text-xs font-bold tracking-widest text-white/60 hidden xl:block whitespace-nowrap">
                   {user.name?.split(' ')[0].toUpperCase()}
                 </span>
-                <button onClick={handleLogout} className="text-xs font-bold tracking-widest text-white/40 hover:text-white transition-colors hidden md:block">
+                <button onClick={handleLogout} className="text-xs font-bold tracking-widest text-white/40 hover:text-white transition-colors hidden xl:block whitespace-nowrap">
                   LOGOUT
                 </button>
               </>
             ) : (
-              <Link to="/login" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden md:block">
+              <Link to="/login" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden xl:block whitespace-nowrap">
                 SIGN IN
               </Link>
             )}
@@ -124,14 +124,14 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMenuOpen(false)}
-              className="fixed inset-0 bg-black/70 z-40 md:hidden"
+              className="fixed inset-0 bg-black/70 z-40 xl:hidden"
             />
 
             {/* Slide-in drawer */}
             <motion.div
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.28 }}
-              className="fixed top-0 left-0 bottom-0 w-[280px] bg-black border-r border-white/10 z-50 md:hidden flex flex-col"
+              className="fixed top-0 left-0 bottom-0 w-[280px] bg-black border-r border-white/10 z-50 xl:hidden flex flex-col"
             >
               {/* Drawer header */}
               <div className="h-16 flex items-center justify-between px-5 border-b border-white/10 flex-shrink-0">
