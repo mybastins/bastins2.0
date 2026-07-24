@@ -58,8 +58,8 @@ export default function Home() {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
             />
 
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors duration-500" />
+            {/* Gradient fade behind text only */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none" />
 
             {/* Vertical divider line */}
             {i < 3 && (
@@ -148,7 +148,8 @@ export default function Home() {
               <Link key={cat.name} to="/collections">
                 <motion.div whileHover="hover" className="relative aspect-square overflow-hidden group bg-black">
                   <img src={cat.img} alt={cat.name}
-                    className="w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-500" />
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" />
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                   <div className="absolute inset-0 flex items-end p-5">
                     <div>
                       <p className="text-xs tracking-[0.2em] uppercase text-[#C0C0C0] mb-1">Shop</p>
@@ -167,8 +168,9 @@ export default function Home() {
         <img
           src="/images/cta-design-your-own.png"
           alt="Design Your Own"
-          className="w-full h-96 object-cover opacity-40"
+          className="w-full h-96 object-cover"
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-transparent pointer-events-none" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
           <p className="text-xs tracking-[0.4em] uppercase mb-4" style={{ color: '#C8F135' }}>
             Exclusive Feature
