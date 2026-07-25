@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -19,7 +19,9 @@ export default function Navbar() {
   const { totalItems, setIsOpen } = useCart()
   const { wishlist } = useWishlist()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const isActive = path => pathname === path
 
   function handleLogout() {
     logout()
@@ -49,7 +51,9 @@ export default function Navbar() {
             <div className="hidden xl:flex items-center gap-6 xl:gap-8 min-w-0">
               {NAV_LINKS.slice(0, 5).map(([to, label]) => (
                 <Link key={to} to={to}
-                  className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors whitespace-nowrap">
+                  className={`text-xs font-bold tracking-widest transition-colors whitespace-nowrap ${
+                    isActive(to) ? 'text-[#C8F135]' : 'text-white/60 hover:text-white'
+                  }`}>
                   {label}
                 </Link>
               ))}
@@ -63,11 +67,15 @@ export default function Navbar() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-3 xl:gap-5 justify-self-end min-w-0">
-            <Link to="/track" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden xl:block whitespace-nowrap">
+            <Link to="/track" className={`text-xs font-bold tracking-widest transition-colors hidden xl:block whitespace-nowrap ${
+              isActive('/track') ? 'text-[#C8F135]' : 'text-white/60 hover:text-white'
+            }`}>
               TRACK ORDER
             </Link>
             {user?.role === 'admin' && (
-              <Link to="/admin" className="text-xs font-bold tracking-widest hidden xl:block transition-colors whitespace-nowrap" style={{ color: '#C8F135' }}>
+              <Link to="/admin" className={`text-xs font-bold tracking-widest hidden xl:block transition-colors whitespace-nowrap ${
+                isActive('/admin') ? 'text-[#C8F135]' : 'text-white/60 hover:text-white'
+              }`}>
                 DASHBOARD
               </Link>
             )}
@@ -81,7 +89,9 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <Link to="/login" className="text-xs font-bold tracking-widest text-white/60 hover:text-white transition-colors hidden xl:block whitespace-nowrap">
+              <Link to="/login" className={`text-xs font-bold tracking-widest transition-colors hidden xl:block whitespace-nowrap ${
+                isActive('/login') ? 'text-[#C8F135]' : 'text-white/60 hover:text-white'
+              }`}>
                 SIGN IN
               </Link>
             )}
@@ -147,7 +157,9 @@ export default function Navbar() {
               <div className="flex-1 overflow-y-auto py-2">
                 {NAV_LINKS.map(([to, label], i) => (
                   <Link key={to} to={to} onClick={() => setMenuOpen(false)}
-                    className="flex items-center justify-between px-5 py-4 text-xs font-black tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 border-b border-white/5 transition-colors group">
+                    className={`flex items-center justify-between px-5 py-4 text-xs font-black tracking-widest uppercase hover:text-white hover:bg-white/5 border-b border-white/5 transition-colors group ${
+                      isActive(to) ? 'text-[#C8F135]' : 'text-white/50'
+                    }`}>
                     {label}
                     <svg className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -157,9 +169,9 @@ export default function Navbar() {
                 {user?.role === 'admin' && (
                   <Link to="/admin" onClick={() => setMenuOpen(false)}
                     className="flex items-center justify-between px-5 py-4 text-xs font-black tracking-widest uppercase border-b border-white/5 hover:bg-white/5 transition-colors"
-                    style={{ color: '#C8F135' }}>
+                    style={{ color: isActive('/admin') ? '#C8F135' : 'rgba(255,255,255,0.5)' }}>
                     ADMIN PANEL
-                    <svg className="w-3 h-3" fill="none" stroke="#C8F135" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="none" stroke={isActive('/admin') ? '#C8F135' : 'rgba(255,255,255,0.5)'} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>

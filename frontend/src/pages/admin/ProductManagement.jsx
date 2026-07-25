@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { exportCsv } from '../../utils/exportCsv'
 
@@ -594,6 +594,10 @@ export default function ProductManagement() {
               {t.label}
             </button>
           ))}
+          <Link to="/admin/products/mockupgen"
+            className="px-5 py-3 text-xs font-bold tracking-widest uppercase transition-colors text-white/30 hover:text-white">
+            MOCKUP GENERATOR
+          </Link>
         </div>
 
         {/* ── LIST TAB ── */}

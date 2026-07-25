@@ -1,7 +1,11 @@
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import toast from 'react-hot-toast'
+import { useDesignAdjust } from '../hooks/useDesignAdjust'
+import TShirtPreviewCanvas from '../components/TShirtPreviewCanvas'
+import DesignAdjustPanel from '../components/DesignAdjustPanel'
+import { TSHIRT_COLORS, SHIRT_BASE, BLUE_BDR, BLUE } from '../utils/tshirtCanvas'
 
 /* ── Garment catalogue ── */
 const GARMENT_TYPES = [
@@ -13,143 +17,25 @@ const GARMENT_TYPES = [
   { id: 'raglan',    label: 'Raglan T-Shirt',   price: 649,  sizes: ['XS','S','M','L','XL'] },
 ]
 
-const TSHIRT_COLORS = [
-  { hex: '#111111', name: 'Black'    },
-  { hex: '#FFFFFF', name: 'White'    },
-  { hex: '#C8F135', name: 'Lime'     },
-  { hex: '#C0C0C0', name: 'Silver'   },
-  { hex: '#1a1a2e', name: 'Navy'     },
-  { hex: '#2d2d2d', name: 'Charcoal' },
-  { hex: '#8B0000', name: 'Burgundy' },
-  { hex: '#4a4a4a', name: 'Slate'    },
-]
-
-/*
-  tshirt-white.png — white tee, background-removed transparent PNG.
-  White × multiply-colour = perfect shirt colour with full texture preserved.
-  No normalisation step needed — white is the ideal multiply base.
-*/
-const SHIRT_BASE = '/tshirt-white.png'
-
-/*
-  Print-area calibrated to tshirt-white.png on a 1:1 square canvas.
-  Image 943×943 (padded square from 736×943 source) → fills canvas exactly.
-
-  Pixel scan (corner-corrected, shadow-removed PNG):
-    Torso (y=50–65 %): L≈30 %  R≈71 %  W≈41 %  Centre≈50.4 %
-    Collar bottom ≈ canvas y 15–17 %.
-
-  14 × 16 in print area centred on front torso:
-    width  = 30 %   (5 % margin inside each torso edge)
-    height = 30 % × (16/14) ≈ 34 %
-    left   = 50 % − 15 % = 35 %
-    top    = 17 %   (just below collar band)
-*/
-const PA = { top: '33%', left: '35%', width: '30%', height: '34%' }
-
-/* Qikink-blue palette */
-const BLUE      = 'rgba(38, 99, 235, 0.42)'
-const BLUE_BDR  = 'rgba(38, 99, 235, 0.80)'
-const BLUE_ICON = '#2563eb'
-
-/* Shared mask style — clips the colour overlay to the shirt silhouette */
-function maskStyle(src) {
-  return {
-    maskImage:          `url(${src})`,
-    maskSize:           'contain',
-    maskPosition:       'center',
-    maskRepeat:         'no-repeat',
-    WebkitMaskImage:    `url(${src})`,
-    WebkitMaskSize:     'contain',
-    WebkitMaskPosition: 'center',
-    WebkitMaskRepeat:   'no-repeat',
-  }
-}
-
-const SCALE_MIN = 0.3
-const SCALE_MAX = 2.5
-
 export default function DesignYourOwn() {
   const [garmentId,     setGarmentId]     = useState('mens')
   const [selectedColor, setSelectedColor] = useState('#FFFFFF')
   const [selectedSize,  setSelectedSize]  = useState('M')
-  const [uploadedImage, setUploadedImage] = useState(null)
-  const [designPos,     setDesignPos]     = useState({ x: 0, y: 0 })
-  const [designScale,   setDesignScale]   = useState(1)
-  const [imgNatural,    setImgNatural]    = useState({ w: 1, h: 1 })
-  const [autoPosition,  setAutoPosition]  = useState(true)
-  const { addToCart }                     = useCart()
-  const fileRef                           = useRef()
-  const printAreaRef                      = useRef()
-  const dragState                         = useRef(null)
+  const { addToCart } = useCart()
+  const fileRef        = useRef()
+  const adjust          = useDesignAdjust()
+  const { uploadedImage, loadImage, clearImage } = adjust
 
   const garment   = GARMENT_TYPES.find(g => g.id === garmentId)
   const colorName = TSHIRT_COLORS.find(c => c.hex === selectedColor)?.name || ''
-
-  function resetDesignTransform() {
-    setDesignPos({ x: 0, y: 0 })
-    setDesignScale(1)
-  }
-
-  function toggleAutoPosition() {
-    setAutoPosition(prev => {
-      const next = !prev
-      if (next) resetDesignTransform() // re-snap to the optimized fit when turning auto back on
-      return next
-    })
-  }
 
   function handleUpload(e) {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = ev => {
-      setUploadedImage(ev.target.result)
-      resetDesignTransform()
-    }
+    reader.onload = ev => loadImage(ev.target.result)
     reader.readAsDataURL(file)
     e.target.value = ''
-  }
-
-  /* ── Drag to reposition (mouse + touch, unified via Pointer Events) ── */
-  function handleDragStart(e) {
-    if (autoPosition) return
-    e.preventDefault()
-    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
-    dragState.current = { startX: e.clientX, startY: e.clientY, origX: designPos.x, origY: designPos.y }
-  }
-  function handleDragMove(e) {
-    if (!dragState.current) return
-    const dx = e.clientX - dragState.current.startX
-    const dy = e.clientY - dragState.current.startY
-    setDesignPos({ x: dragState.current.origX + dx, y: dragState.current.origY + dy })
-  }
-  function handleDragEnd(e) {
-    dragState.current = null
-    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
-  }
-
-  /* ── Alignment — snaps the design to an edge/centre of the print area ── */
-  function alignDesign(edge) {
-    const box = printAreaRef.current?.getBoundingClientRect()
-    if (!box || !box.width || !box.height) return
-    const imgAR = imgNatural.w / imgNatural.h
-    const boxAR = box.width / box.height
-    const fitW  = imgAR > boxAR ? box.width : box.height * imgAR
-    const fitH  = imgAR > boxAR ? box.width / imgAR : box.height
-    const effW  = fitW * designScale
-    const effH  = fitH * designScale
-
-    setDesignPos(prev => {
-      const next = { ...prev }
-      if (edge === 'left')   next.x = -(box.width - effW) / 2
-      if (edge === 'right')  next.x =  (box.width - effW) / 2
-      if (edge === 'center') next.x = 0
-      if (edge === 'top')    next.y = -(box.height - effH) / 2
-      if (edge === 'bottom') next.y =  (box.height - effH) / 2
-      if (edge === 'middle') next.y = 0
-      return next
-    })
   }
 
   function switchGarment(id) {
@@ -195,109 +81,11 @@ export default function DesignYourOwn() {
           <div>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40 mb-3">Preview</p>
 
-            {/* ── Canvas — isolated compositing group ── */}
-            <div
-              className="relative w-full overflow-hidden"
-              style={{ aspectRatio: '1 / 1', background: '#B2AFA6' }}
-            >
-              {/* Layer 1 — normalised grey shirt base */}
-              <img
-                src={SHIRT_BASE}
-                alt="T-shirt"
-                draggable={false}
-                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
-                onError={e => { e.target.src = '/tshirt-mockup.jpg' }}
-              />
-
-              {/* Layer 2 — colour overlay (multiply × grey base = realistic shirt colour)
-                  mask-image clips the solid colour div to the exact shirt silhouette
-                  so the canvas background (#e8e8e8) is never tinted               */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:    selectedColor,
-                  mixBlendMode:  'multiply',
-                  transition:    'background 0.25s ease',
-                  ...maskStyle(SHIRT_BASE),
-                }}
-              />
-
-              {/* ── Print area ── */}
-              <div
-                ref={printAreaRef}
-                className="absolute"
-                style={{ top: PA.top, left: PA.left, width: PA.width, height: PA.height }}
-              >
-                {uploadedImage ? (
-                  /* ── Design uploaded — drag to move, transform applied on the image itself
-                       so this wrapper's box stays stable for alignment measurement ── */
-                  <>
-                    <img
-                      src={uploadedImage}
-                      alt="custom design"
-                      draggable={false}
-                      onLoad={e => setImgNatural({ w: e.target.naturalWidth || 1, h: e.target.naturalHeight || 1 })}
-                      onPointerDown={handleDragStart}
-                      onPointerMove={handleDragMove}
-                      onPointerUp={handleDragEnd}
-                      onPointerCancel={handleDragEnd}
-                      className={`w-full h-full object-contain select-none ${autoPosition ? 'cursor-default' : 'cursor-move'}`}
-                      style={{
-                        transform:      `translate(${designPos.x}px, ${designPos.y}px) scale(${designScale})`,
-                        transformOrigin: 'center center',
-                        touchAction:    'none',
-                      }}
-                    />
-                    {/* print-area guide — stays fixed as a reference while the design moves */}
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        border:       `1.5px dashed ${BLUE_BDR}`,
-                        borderRadius: 3,
-                      }}
-                    />
-                    {autoPosition && (
-                      <div className="absolute top-1.5 right-1.5 flex items-center gap-1 bg-black/60 px-2 py-1 pointer-events-none" style={{ borderRadius: 3 }}>
-                        <svg className="w-2.5 h-2.5 text-[#C8F135]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span className="text-[8px] font-black tracking-widest uppercase text-[#C8F135]">Auto</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  /* ── Empty — upload prompt ── */
-                  <button
-                    onClick={() => fileRef.current.click()}
-                    className="w-full h-full flex flex-col items-center justify-center gap-2 group"
-                    style={{
-                      background:   BLUE,
-                      border:       `2px dashed ${BLUE_BDR}`,
-                      borderRadius: 3,
-                    }}
-                  >
-                    {/* Icon circle */}
-                    <div
-                      className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-                      style={{ background: BLUE_ICON }}
-                    >
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                      </svg>
-                    </div>
-                    <span
-                      className="text-[11px] font-bold tracking-widest uppercase"
-                      style={{ color: BLUE_ICON }}
-                    >
-                      Upload Design
-                    </span>
-                    <span className="text-[10px]" style={{ color: 'rgba(38,99,235,0.6)' }}>
-                      14 × 16 in print area
-                    </span>
-                  </button>
-                )}
-              </div>
-            </div>
+            <TShirtPreviewCanvas
+              selectedColor={selectedColor}
+              adjust={adjust}
+              onUploadClick={() => fileRef.current.click()}
+            />
 
             {/* Below-canvas info + remove */}
             <div className="mt-3 flex items-center justify-between">
@@ -310,7 +98,7 @@ export default function DesignYourOwn() {
               </div>
               {uploadedImage && (
                 <button
-                  onClick={() => setUploadedImage(null)}
+                  onClick={clearImage}
                   className="text-[10px] text-red-400/50 hover:text-red-400 transition-colors uppercase tracking-widest font-bold"
                 >
                   Remove
@@ -343,104 +131,7 @@ export default function DesignYourOwn() {
             </div>
 
             {/* Adjust Design — resize / reposition / align */}
-            {uploadedImage && (
-              <div className="border border-white/10 p-6">
-
-                {/* Auto Position — big toggle, on by default */}
-                <button
-                  onClick={toggleAutoPosition}
-                  className="w-full flex items-center justify-between gap-4 mb-5 pb-5 border-b border-white/10 text-left"
-                >
-                  <div>
-                    <p className="text-sm font-black tracking-wide text-white">Auto Position</p>
-                    <p className="text-[10px] text-white/30 mt-0.5 leading-relaxed">
-                      Fits your design at its original proportions for the best print size &amp; placement — no adjustment needed.
-                    </p>
-                  </div>
-                  <span
-                    className="relative flex-shrink-0 w-14 h-8 rounded-full transition-colors duration-300"
-                    style={{ background: autoPosition ? '#C8F135' : 'rgba(255,255,255,0.1)' }}
-                  >
-                    <motion.span
-                      className="absolute top-1 left-1 w-6 h-6 rounded-full bg-black"
-                      animate={{ x: autoPosition ? 24 : 0 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    />
-                  </span>
-                </button>
-
-                {autoPosition ? (
-                  <p className="text-[10px] text-white/25 leading-relaxed">
-                    🔒 Positioning, resizing &amp; alignment are locked while Auto Position is on. Turn it off to adjust manually.
-                  </p>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40">Manual Adjust</p>
-                      <button
-                        onClick={resetDesignTransform}
-                        className="text-[10px] font-bold text-white/30 hover:text-[#C8F135] uppercase tracking-widest transition-colors"
-                      >
-                        ↺ Reset
-                      </button>
-                    </div>
-
-                    {/* Zoom / resize */}
-                    <div className="mb-5">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] text-white/30 uppercase tracking-widest">Size</span>
-                        <span className="text-xs font-black text-[#C8F135]">{Math.round(designScale * 100)}%</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setDesignScale(s => Math.max(SCALE_MIN, +(s - 0.1).toFixed(2)))}
-                          className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-white/20 text-white/60 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors"
-                        >
-                          −
-                        </button>
-                        <input
-                          type="range"
-                          min={SCALE_MIN * 100}
-                          max={SCALE_MAX * 100}
-                          value={Math.round(designScale * 100)}
-                          onChange={e => setDesignScale(Number(e.target.value) / 100)}
-                          className="flex-1 accent-[#C8F135]"
-                        />
-                        <button
-                          onClick={() => setDesignScale(s => Math.min(SCALE_MAX, +(s + 0.1).toFixed(2)))}
-                          className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-white/20 text-white/60 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Alignment */}
-                    <div>
-                      <span className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">Align</span>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          ['left', 'Left'], ['center', 'Center'], ['right', 'Right'],
-                          ['top', 'Top'], ['middle', 'Middle'], ['bottom', 'Bottom'],
-                        ].map(([key, label]) => (
-                          <button
-                            key={key}
-                            onClick={() => alignDesign(key)}
-                            className="text-[10px] font-bold border border-white/15 py-2 text-white/50 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors uppercase tracking-wider"
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <p className="text-[10px] text-white/20 mt-4 leading-relaxed">
-                      Drag the design directly on the preview to reposition it.
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
+            {uploadedImage && <DesignAdjustPanel adjust={adjust} />}
 
             {/* Style */}
             <div className="border border-white/10 p-6">
