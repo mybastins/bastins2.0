@@ -68,7 +68,7 @@ export default function Navbar() {
             </Link>
             {user?.role === 'admin' && (
               <Link to="/admin" className="text-xs font-bold tracking-widest hidden xl:block transition-colors whitespace-nowrap" style={{ color: '#C8F135' }}>
-                ADMIN
+                DASHBOARD
               </Link>
             )}
             {user ? (

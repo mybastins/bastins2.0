@@ -61,4 +61,12 @@ router.get('/profile', authenticateToken, async (req, res) => {
   res.json(safeUser);
 });
 
+// Delete customer (admin)
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const db = await getDb();
+  const result = await db.collection('users').deleteOne({ id: req.params.id, role: { $ne: 'admin' } });
+  if (result.deletedCount === 0) return res.status(404).json({ error: 'Customer not found' });
+  res.json({ message: 'Customer deleted' });
+});
+
 module.exports = router;

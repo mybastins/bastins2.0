@@ -79,7 +79,6 @@ export default function AdminDashboard() {
     { label: 'Total Products', value: stats.products,         icon: ICONS.tshirt,   link: '/admin/products',   color: 'text-white' },
     { label: 'Total Orders',   value: stats.orders,           icon: ICONS.box,      link: '/admin/orders',     color: 'text-[#C8F135]' },
     { label: 'New Orders',     value: stats.newOrders,        icon: ICONS.newOrder, link: '/admin/orders',     color: 'text-blue-400' },
-    { label: 'Total Revenue',  value: `₹${stats.revenue}`,   icon: ICONS.revenue,  link: '/admin/orders',     color: 'text-green-400' },
     { label: 'Customers',      value: stats.customers,        icon: ICONS.users,    link: '/admin/customers',  color: 'text-purple-400' },
     { label: 'Low Stock',      value: stats.lowStock,         icon: ICONS.warning,  link: '/admin/products',   color: 'text-yellow-400' },
   ]
@@ -106,7 +105,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-white/10 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-white/10 mb-10">
           {cards.map((card, i) => (
             <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={card.link} className="bg-black p-6 flex flex-col gap-2 hover:bg-zinc-900 transition-colors block">

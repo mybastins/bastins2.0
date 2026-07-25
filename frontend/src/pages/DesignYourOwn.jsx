@@ -45,7 +45,7 @@ const SHIRT_BASE = '/tshirt-white.png'
     left   = 50 % − 15 % = 35 %
     top    = 17 %   (just below collar band)
 */
-const PA = { top: '22%', left: '35%', width: '30%', height: '34%' }
+const PA = { top: '33%', left: '35%', width: '30%', height: '34%' }
 
 /* Qikink-blue palette */
 const BLUE      = 'rgba(38, 99, 235, 0.42)'
@@ -66,24 +66,90 @@ function maskStyle(src) {
   }
 }
 
+const SCALE_MIN = 0.3
+const SCALE_MAX = 2.5
+
 export default function DesignYourOwn() {
   const [garmentId,     setGarmentId]     = useState('mens')
   const [selectedColor, setSelectedColor] = useState('#FFFFFF')
   const [selectedSize,  setSelectedSize]  = useState('M')
   const [uploadedImage, setUploadedImage] = useState(null)
+  const [designPos,     setDesignPos]     = useState({ x: 0, y: 0 })
+  const [designScale,   setDesignScale]   = useState(1)
+  const [imgNatural,    setImgNatural]    = useState({ w: 1, h: 1 })
+  const [autoPosition,  setAutoPosition]  = useState(true)
   const { addToCart }                     = useCart()
   const fileRef                           = useRef()
+  const printAreaRef                      = useRef()
+  const dragState                         = useRef(null)
 
   const garment   = GARMENT_TYPES.find(g => g.id === garmentId)
   const colorName = TSHIRT_COLORS.find(c => c.hex === selectedColor)?.name || ''
+
+  function resetDesignTransform() {
+    setDesignPos({ x: 0, y: 0 })
+    setDesignScale(1)
+  }
+
+  function toggleAutoPosition() {
+    setAutoPosition(prev => {
+      const next = !prev
+      if (next) resetDesignTransform() // re-snap to the optimized fit when turning auto back on
+      return next
+    })
+  }
 
   function handleUpload(e) {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = ev => setUploadedImage(ev.target.result)
+    reader.onload = ev => {
+      setUploadedImage(ev.target.result)
+      resetDesignTransform()
+    }
     reader.readAsDataURL(file)
     e.target.value = ''
+  }
+
+  /* ── Drag to reposition (mouse + touch, unified via Pointer Events) ── */
+  function handleDragStart(e) {
+    if (autoPosition) return
+    e.preventDefault()
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+    dragState.current = { startX: e.clientX, startY: e.clientY, origX: designPos.x, origY: designPos.y }
+  }
+  function handleDragMove(e) {
+    if (!dragState.current) return
+    const dx = e.clientX - dragState.current.startX
+    const dy = e.clientY - dragState.current.startY
+    setDesignPos({ x: dragState.current.origX + dx, y: dragState.current.origY + dy })
+  }
+  function handleDragEnd(e) {
+    dragState.current = null
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
+  }
+
+  /* ── Alignment — snaps the design to an edge/centre of the print area ── */
+  function alignDesign(edge) {
+    const box = printAreaRef.current?.getBoundingClientRect()
+    if (!box || !box.width || !box.height) return
+    const imgAR = imgNatural.w / imgNatural.h
+    const boxAR = box.width / box.height
+    const fitW  = imgAR > boxAR ? box.width : box.height * imgAR
+    const fitH  = imgAR > boxAR ? box.width / imgAR : box.height
+    const effW  = fitW * designScale
+    const effH  = fitH * designScale
+
+    setDesignPos(prev => {
+      const next = { ...prev }
+      if (edge === 'left')   next.x = -(box.width - effW) / 2
+      if (edge === 'right')  next.x =  (box.width - effW) / 2
+      if (edge === 'center') next.x = 0
+      if (edge === 'top')    next.y = -(box.height - effH) / 2
+      if (edge === 'bottom') next.y =  (box.height - effH) / 2
+      if (edge === 'middle') next.y = 0
+      return next
+    })
   }
 
   function switchGarment(id) {
@@ -158,19 +224,31 @@ export default function DesignYourOwn() {
 
               {/* ── Print area ── */}
               <div
+                ref={printAreaRef}
                 className="absolute"
                 style={{ top: PA.top, left: PA.left, width: PA.width, height: PA.height }}
               >
                 {uploadedImage ? (
-                  /* ── Design uploaded ── */
+                  /* ── Design uploaded — drag to move, transform applied on the image itself
+                       so this wrapper's box stays stable for alignment measurement ── */
                   <>
                     <img
                       src={uploadedImage}
                       alt="custom design"
                       draggable={false}
-                      className="w-full h-full object-contain pointer-events-none select-none"
+                      onLoad={e => setImgNatural({ w: e.target.naturalWidth || 1, h: e.target.naturalHeight || 1 })}
+                      onPointerDown={handleDragStart}
+                      onPointerMove={handleDragMove}
+                      onPointerUp={handleDragEnd}
+                      onPointerCancel={handleDragEnd}
+                      className={`w-full h-full object-contain select-none ${autoPosition ? 'cursor-default' : 'cursor-move'}`}
+                      style={{
+                        transform:      `translate(${designPos.x}px, ${designPos.y}px) scale(${designScale})`,
+                        transformOrigin: 'center center',
+                        touchAction:    'none',
+                      }}
                     />
-                    {/* keep dashed reference border */}
+                    {/* print-area guide — stays fixed as a reference while the design moves */}
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
@@ -178,6 +256,14 @@ export default function DesignYourOwn() {
                         borderRadius: 3,
                       }}
                     />
+                    {autoPosition && (
+                      <div className="absolute top-1.5 right-1.5 flex items-center gap-1 bg-black/60 px-2 py-1 pointer-events-none" style={{ borderRadius: 3 }}>
+                        <svg className="w-2.5 h-2.5 text-[#C8F135]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="text-[8px] font-black tracking-widest uppercase text-[#C8F135]">Auto</span>
+                      </div>
+                    )}
                   </>
                 ) : (
                   /* ── Empty — upload prompt ── */
@@ -255,6 +341,106 @@ export default function DesignYourOwn() {
                 <p className="text-[10px] text-white/15 mt-1">PNG · JPG · SVG</p>
               </button>
             </div>
+
+            {/* Adjust Design — resize / reposition / align */}
+            {uploadedImage && (
+              <div className="border border-white/10 p-6">
+
+                {/* Auto Position — big toggle, on by default */}
+                <button
+                  onClick={toggleAutoPosition}
+                  className="w-full flex items-center justify-between gap-4 mb-5 pb-5 border-b border-white/10 text-left"
+                >
+                  <div>
+                    <p className="text-sm font-black tracking-wide text-white">Auto Position</p>
+                    <p className="text-[10px] text-white/30 mt-0.5 leading-relaxed">
+                      Fits your design at its original proportions for the best print size &amp; placement — no adjustment needed.
+                    </p>
+                  </div>
+                  <span
+                    className="relative flex-shrink-0 w-14 h-8 rounded-full transition-colors duration-300"
+                    style={{ background: autoPosition ? '#C8F135' : 'rgba(255,255,255,0.1)' }}
+                  >
+                    <motion.span
+                      className="absolute top-1 left-1 w-6 h-6 rounded-full bg-black"
+                      animate={{ x: autoPosition ? 24 : 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  </span>
+                </button>
+
+                {autoPosition ? (
+                  <p className="text-[10px] text-white/25 leading-relaxed">
+                    🔒 Positioning, resizing &amp; alignment are locked while Auto Position is on. Turn it off to adjust manually.
+                  </p>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/40">Manual Adjust</p>
+                      <button
+                        onClick={resetDesignTransform}
+                        className="text-[10px] font-bold text-white/30 hover:text-[#C8F135] uppercase tracking-widest transition-colors"
+                      >
+                        ↺ Reset
+                      </button>
+                    </div>
+
+                    {/* Zoom / resize */}
+                    <div className="mb-5">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-white/30 uppercase tracking-widest">Size</span>
+                        <span className="text-xs font-black text-[#C8F135]">{Math.round(designScale * 100)}%</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setDesignScale(s => Math.max(SCALE_MIN, +(s - 0.1).toFixed(2)))}
+                          className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-white/20 text-white/60 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="range"
+                          min={SCALE_MIN * 100}
+                          max={SCALE_MAX * 100}
+                          value={Math.round(designScale * 100)}
+                          onChange={e => setDesignScale(Number(e.target.value) / 100)}
+                          className="flex-1 accent-[#C8F135]"
+                        />
+                        <button
+                          onClick={() => setDesignScale(s => Math.min(SCALE_MAX, +(s + 0.1).toFixed(2)))}
+                          className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-white/20 text-white/60 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Alignment */}
+                    <div>
+                      <span className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">Align</span>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          ['left', 'Left'], ['center', 'Center'], ['right', 'Right'],
+                          ['top', 'Top'], ['middle', 'Middle'], ['bottom', 'Bottom'],
+                        ].map(([key, label]) => (
+                          <button
+                            key={key}
+                            onClick={() => alignDesign(key)}
+                            className="text-[10px] font-bold border border-white/15 py-2 text-white/50 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors uppercase tracking-wider"
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-white/20 mt-4 leading-relaxed">
+                      Drag the design directly on the preview to reposition it.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Style */}
             <div className="border border-white/10 p-6">

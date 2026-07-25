@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { exportCsv } from '../../utils/exportCsv'
 
 const empty = {
   name: '', price: '', discountPrice: '', description: '',
@@ -403,6 +404,8 @@ export default function ProductManagement() {
   const [file, setFile] = useState(null)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [selected, setSelected] = useState(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
   const { token, user } = useAuth()
   const navigate = useNavigate()
 
@@ -456,6 +459,68 @@ export default function ProductManagement() {
     await axios.delete(`/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } })
     toast.success('Product deleted')
     fetchAll()
+  }
+
+  function toggleSelect(id) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelected(prev => {
+      const allSelected = filtered.length > 0 && filtered.every(p => prev.has(p.id))
+      if (allSelected) return new Set()
+      return new Set(filtered.map(p => p.id))
+    })
+  }
+
+  async function bulkSetStatus(status) {
+    const ids = [...selected]
+    if (!ids.length) return
+    setBulkBusy(true)
+    try {
+      await Promise.all(ids.map(id =>
+        axios.put(`/api/products/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } })
+      ))
+      toast.success(`${ids.length} product${ids.length > 1 ? 's' : ''} set to ${status}`)
+      setSelected(new Set())
+      fetchAll()
+    } catch { toast.error('Bulk update failed') }
+    finally { setBulkBusy(false) }
+  }
+
+  async function bulkDelete() {
+    const ids = [...selected]
+    if (!ids.length) return
+    if (!window.confirm(`Delete ${ids.length} selected product${ids.length > 1 ? 's' : ''}? This cannot be undone.`)) return
+    setBulkBusy(true)
+    try {
+      await Promise.all(ids.map(id =>
+        axios.delete(`/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      ))
+      toast.success(`${ids.length} product${ids.length > 1 ? 's' : ''} deleted`)
+      setSelected(new Set())
+      fetchAll()
+    } catch { toast.error('Bulk delete failed') }
+    finally { setBulkBusy(false) }
+  }
+
+  function bulkExport() {
+    const rows = products.filter(p => selected.has(p.id))
+    exportCsv('products.csv', rows, [
+      { label: 'ID', value: r => r.id },
+      { label: 'SKU', value: r => r.sku },
+      { label: 'Name', value: r => r.name },
+      { label: 'Price', value: r => r.price },
+      { label: 'Discount Price', value: r => r.discountPrice ?? '' },
+      { label: 'Stock', value: r => r.stock },
+      { label: 'Category', value: r => r.category },
+      { label: 'Collection', value: r => r.collection },
+      { label: 'Status', value: r => r.status },
+    ])
   }
 
   async function handleBulkUpload(e) {
@@ -524,7 +589,7 @@ export default function ProductManagement() {
             { key: 'collections', label: `COLLECTIONS (${collections.length})` },
             { key: 'bulk',        label: 'BULK UPLOAD' }
           ].map(t => (
-            <button key={t.key} onClick={() => { setTab(t.key); if (t.key !== 'form') resetForm() }}
+            <button key={t.key} onClick={() => { setTab(t.key); if (t.key !== 'form') resetForm(); setSelected(new Set()) }}
               className={`px-5 py-3 text-xs font-bold tracking-widest uppercase transition-colors ${tab === t.key ? 'text-white border-b-2 border-[#C8F135]' : 'text-white/30 hover:text-white'}`}>
               {t.label}
             </button>
@@ -552,23 +617,61 @@ export default function ProductManagement() {
               </button>
             </div>
 
+            {/* Bulk action bar */}
+            {selected.size > 0 && (
+              <div className="flex flex-wrap items-center gap-3 mb-4 px-4 py-3 bg-zinc-900 border border-[#C8F135]/30">
+                <span className="text-xs font-bold tracking-widest text-[#C8F135]">{selected.size} SELECTED</span>
+                <button onClick={() => bulkSetStatus('active')} disabled={bulkBusy}
+                  className="text-xs font-bold border border-white/20 px-3 py-1.5 hover:border-green-400 hover:text-green-400 transition-colors disabled:opacity-40">
+                  SET ACTIVE
+                </button>
+                <button onClick={() => bulkSetStatus('draft')} disabled={bulkBusy}
+                  className="text-xs font-bold border border-white/20 px-3 py-1.5 hover:border-yellow-400 hover:text-yellow-400 transition-colors disabled:opacity-40">
+                  SET DRAFT
+                </button>
+                <button onClick={bulkExport} disabled={bulkBusy}
+                  className="text-xs font-bold border border-white/20 px-3 py-1.5 hover:border-[#C8F135] hover:text-[#C8F135] transition-colors disabled:opacity-40">
+                  EXPORT CSV
+                </button>
+                <button onClick={bulkDelete} disabled={bulkBusy}
+                  className="text-xs font-bold border border-white/10 px-3 py-1.5 text-red-400/70 hover:text-red-400 hover:border-red-400/50 transition-colors disabled:opacity-40">
+                  DELETE
+                </button>
+                <button onClick={() => setSelected(new Set())}
+                  className="text-xs font-bold text-white/30 hover:text-white ml-auto transition-colors">
+                  CLEAR
+                </button>
+              </div>
+            )}
+
             {filtered.length === 0 ? (
               <div className="text-center py-20 text-white/20 font-bold">No products found</div>
             ) : (
               <div className="border border-white/10">
-                <div className="grid grid-cols-12 gap-2 px-4 py-3 text-xs font-bold tracking-widest uppercase text-white/20 border-b border-white/10">
-                  <span className="col-span-1">IMG</span>
-                  <span className="col-span-3">NAME / SKU</span>
-                  <span className="col-span-2">PRICE</span>
-                  <span className="col-span-1">STOCK</span>
-                  <span className="col-span-2">CATEGORY</span>
-                  <span className="col-span-1">STATUS</span>
-                  <span className="col-span-2 text-right">ACTIONS</span>
+                <div className="flex items-center gap-3 px-4 py-3 text-xs font-bold tracking-widest uppercase text-white/20 border-b border-white/10">
+                  <input type="checkbox"
+                    checked={filtered.length > 0 && filtered.every(p => selected.has(p.id))}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 accent-[#C8F135] cursor-pointer flex-shrink-0" />
+                  <div className="grid grid-cols-12 gap-2 flex-1">
+                    <span className="col-span-1">IMG</span>
+                    <span className="col-span-3">NAME / SKU</span>
+                    <span className="col-span-2">PRICE</span>
+                    <span className="col-span-1">STOCK</span>
+                    <span className="col-span-2">CATEGORY</span>
+                    <span className="col-span-1">STATUS</span>
+                    <span className="col-span-2 text-right">ACTIONS</span>
+                  </div>
                 </div>
                 <AnimatePresence>
                   {filtered.map(p => (
                     <motion.div key={p.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className="grid grid-cols-12 gap-2 px-4 py-4 items-center border-b border-white/5 hover:bg-white/3 transition-colors">
+                      className="flex items-center gap-3 px-4 py-4 border-b border-white/5 hover:bg-white/3 transition-colors">
+                      <input type="checkbox"
+                        checked={selected.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                        className="w-4 h-4 accent-[#C8F135] cursor-pointer flex-shrink-0" />
+                      <div className="grid grid-cols-12 gap-2 items-center flex-1">
                       <div className="col-span-1">
                         <img src={p.image} alt={p.name} className="w-12 h-12 object-cover bg-zinc-900"
                           onError={e => e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=60'} />
@@ -611,6 +714,7 @@ export default function ProductManagement() {
                           className="text-xs font-bold border border-white/10 px-3 py-1.5 text-red-400/70 hover:text-red-400 hover:border-red-400/50 transition-colors">
                           DEL
                         </button>
+                      </div>
                       </div>
                     </motion.div>
                   ))}
