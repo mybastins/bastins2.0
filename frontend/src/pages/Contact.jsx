@@ -46,8 +46,8 @@ export default function Contact() {
             {/* Info */}
             <div className="space-y-8">
               {[
-                { label: 'Email', value: 'support@bastins.com', icon: '✉' },
-                { label: 'WhatsApp', value: '+91 98765 43210', icon: '💬' },
+                { label: 'Email', value: 'mybastins@gmail.com', icon: '✉' },
+                { label: 'WhatsApp', value: '+91 96772 31919', icon: '💬' },
                 { label: 'Hours', value: 'Mon–Sat, 10am–6pm IST', icon: '🕐' },
                 { label: 'Response Time', value: 'Within 24 hours', icon: '⚡' }
               ].map(item => (
