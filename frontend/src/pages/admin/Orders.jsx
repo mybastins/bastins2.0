@@ -198,7 +198,9 @@ export default function AdminOrders() {
                       <p className="text-xs tracking-widest uppercase text-white/30 mb-2">Order Details</p>
                       <p><span className="text-white/40">Tracking:</span> <span className="font-mono text-[#C8F135]">{order.trackingNumber}</span></p>
                       <p><span className="text-white/40">Phone:</span> {order.phone || '—'}</p>
-                      <p><span className="text-white/40">Payment:</span> <span className="text-green-400">{order.paymentStatus}</span></p>
+                      <p><span className="text-white/40">Payment:</span> <span className={
+                        order.paymentStatus === 'paid' ? 'text-green-400' : order.paymentStatus === 'failed' ? 'text-red-400' : 'text-yellow-400'
+                      }>{order.paymentStatus}</span> {order.paymentMethod && <span className="text-white/30">({order.paymentMethod.toUpperCase()})</span>}</p>
                       <p><span className="text-white/40">Address:</span> {order.shippingAddress}</p>
                     </div>
                     <div>

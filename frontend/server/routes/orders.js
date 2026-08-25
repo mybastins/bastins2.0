@@ -5,14 +5,21 @@ const { getDb } = require('../lib/mongo');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const VALID_STATUSES = ['new', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'];
+const PAYMENT_METHODS = ['cod', 'payu'];
 
 // Create order
 router.post('/create', authenticateToken, async (req, res) => {
-  const { items, total, shippingAddress, phone } = req.body;
+  const { items, total, shippingAddress, phone, paymentMethod = 'cod' } = req.body;
   if (!items || !items.length) return res.status(400).json({ error: 'Items required' });
   if (!shippingAddress) return res.status(400).json({ error: 'Shipping address required' });
+  if (!PAYMENT_METHODS.includes(paymentMethod)) return res.status(400).json({ error: 'Invalid payment method' });
 
   const db = await getDb();
+
+  const settings = await db.collection('meta').findOne({ _id: 'paymentMethods' });
+  const enabled = { cod: settings?.cod ?? true, payu: settings?.payu ?? false };
+  if (!enabled[paymentMethod]) return res.status(400).json({ error: `${paymentMethod.toUpperCase()} is currently unavailable` });
+
   const products = db.collection('products');
   const trackingNumber = `BASTINS-${Date.now()}`;
   const estimatedDelivery = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -38,7 +45,9 @@ router.post('/create', authenticateToken, async (req, res) => {
     items,
     total: total || 0,
     shippingAddress,
-    paymentStatus: 'paid',
+    paymentMethod,
+    paymentStatus: 'pending',
+    payuTxnId: paymentMethod === 'payu' ? uuidv4().replace(/-/g, '').slice(0, 20) : null,
     status: 'new',
     trackingNumber,
     estimatedDelivery,

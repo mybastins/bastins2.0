@@ -1,9 +1,47 @@
-import { useLocation, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import axios from 'axios'
+import { useCart } from '../context/CartContext'
 
 export default function OrderSuccess() {
   const { state } = useLocation()
-  const order = state?.order
+  const [searchParams] = useSearchParams()
+  const { clearCart } = useCart()
+  const orderId = searchParams.get('orderId')
+
+  const [order, setOrder] = useState(state?.order || null)
+  const [loading, setLoading] = useState(!state?.order && !!orderId)
+
+  useEffect(() => {
+    if (state?.order || !orderId) return
+    axios.get(`/api/orders/track/${orderId}`)
+      .then(({ data }) => {
+        setOrder(data)
+        if (data.paymentStatus === 'paid') clearCart()
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <p className="text-[#C8F135] font-black text-xl tracking-widest">LOADING...</p>
+    </div>
+  )
+
+  if (order?.paymentMethod === 'payu' && order.paymentStatus === 'failed') return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+      <div className="text-center max-w-md">
+        <div className="w-20 h-20 bg-red-500 flex items-center justify-center mx-auto mb-6 text-white text-4xl">✕</div>
+        <h1 className="text-3xl font-black tracking-tight mb-2">PAYMENT FAILED</h1>
+        <p className="text-white/50 mb-8">Your payment couldn't be completed and you haven't been charged. You can try again or choose a different payment method.</p>
+        <Link to="/cart" className="inline-block bg-white text-black font-black py-3 px-8 text-xs tracking-widest uppercase hover:bg-[#C8F135] transition-colors">
+          BACK TO CART
+        </Link>
+      </div>
+    </div>
+  )
 
   if (!order) return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -40,7 +78,15 @@ export default function OrderSuccess() {
             <span className="font-bold">{new Date(order.estimatedDelivery).toDateString()}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-white/40 tracking-widest uppercase text-xs">Total Paid</span>
+            <span className="text-white/40 tracking-widest uppercase text-xs">Payment</span>
+            <span className="font-bold">
+              {order.paymentMethod === 'payu' ? 'Paid Online (PayU)' : 'Cash on Delivery'}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-white/40 tracking-widest uppercase text-xs">
+              {order.paymentMethod === 'payu' ? 'Total Paid' : 'Total Due'}
+            </span>
             <span className="font-black text-[#C8F135]">₹{order.total}</span>
           </div>
           <div className="pt-2 border-t border-white/10">

@@ -9,6 +9,8 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/collections', require('./routes/collections'));
+app.use('/api/settings', require('./routes/settings'));
+app.use('/api/payments', require('./routes/payments'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
