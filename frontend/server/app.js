@@ -1,6 +1,7 @@
 const express = require('express');
 
 const app = express();
+app.set('trust proxy', true); // Vercel sits behind a proxy — needed so req.protocol reflects the real https scheme
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
