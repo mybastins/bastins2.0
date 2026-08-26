@@ -598,6 +598,10 @@ export default function ProductManagement() {
             className="px-5 py-3 text-xs font-bold tracking-widest uppercase transition-colors text-white/30 hover:text-white">
             MOCKUP GENERATOR
           </Link>
+          <Link to="/admin/products/quick-template"
+            className="px-5 py-3 text-xs font-bold tracking-widest uppercase transition-colors text-white/30 hover:text-white">
+            QUICK TEMPLATE
+          </Link>
         </div>
 
         {/* ── LIST TAB ── */}

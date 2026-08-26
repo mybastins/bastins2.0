@@ -35,6 +35,7 @@ import AdminOrders from './pages/admin/Orders'
 import AdminCustomers from './pages/admin/Customers'
 import MockupGenerator from './pages/admin/MockupGenerator'
 import AdminSettings from './pages/admin/Settings'
+import QuickTemplate from './pages/admin/QuickTemplate'
 
 function Layout({ children }) {
   const { pathname } = useLocation()
@@ -89,6 +90,7 @@ export default function App() {
                 <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/customers" element={<AdminCustomers />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/admin/products/quick-template" element={<QuickTemplate />} />
               </Routes>
             </Layout>
           </BrowserRouter>
